@@ -1,5 +1,7 @@
-Author: Benjamin Allan, Sandia National Labs
-Date: 12/2012
+Authors: 
+    Eric Anger, Georgia Institute of Technology
+    Benjamin Allan, Sandia National Labs
+Date: 12/2014
 
 * Examples:
 The examples directory contains simple C, C++, and Fortran apps that demonstrate

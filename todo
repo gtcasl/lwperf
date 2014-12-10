@@ -1,3 +1,6 @@
+Consider implementing everything in C++ with templates (which are pretty much
+macros anyway), and exposing a C/fortran API as necessary.
+
 Add in timer so we can handle overflow.
     Necessary? Are any compute regions greater than ~60 secs?
     Would need to set up and tear down per region. Maybe just print out a
