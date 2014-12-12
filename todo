@@ -1,3 +1,5 @@
+* Add doxygen comments for the APIs?
+* Use macro voodoo to turn EIGER_MODEL stuff into gotos, rather than if(0) calls.
 * Consider implementing everything in C++ with templates (which are pretty much
 macros anyway), and exposing a C/fortran API as necessary.
 * What would make this thread-safe?
