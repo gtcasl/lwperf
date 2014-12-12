@@ -3,93 +3,92 @@
 #include <cassert>
 #include <eiger.h>
 
-#include "datakind.h"
 #include "eigerbackend.h"
 
-EigerBackend::EigerBackend(std::string sitename, std::string machine, 
-    std::string application, bool append)
-  : sitename_(sitename), appname_(application), dc_(sitename, sitename), 
-  app_(application, application), machine_(machine, machine)
+Cite::Cite(const char* name, const std::unordered_map<std::string, double>& invariants) 
+  : dc_(name, name), det_metrics_(invariants) {}
+
+void Cite::addDetMetric(const std::string& name, double value) {
+  det_metrics_[name] = value;
+}
+
+const std::unordered_map<std::string, double>& Cite::getDetMetrics() const {
+  return det_metrics_;
+}
+
+eiger::DataCollectionID Cite::getDCID() {
+  return dc_.getID();
+}
+
+lwperf_eiger::lwperf_eiger(const char* machine, const char* application,
+                           const char* dbname, const char* prefix,
+                           const char* suffix)
+    : machine_(machine, machine),
+      app_(application, application)
 {
-		dc_.commit();
-    app_.commit();
-    machine_.commit();
-}
-
-void EigerBackend::addCol(const std::string& label, const enum datakind kind){
-  eiger::metric_type_t etype;
-  switch(kind){
-    case RESULT:
-      etype = eiger::RESULT;
-      break;
-    case DETERMINISTIC:
-      etype = eiger::DETERMINISTIC;
-			break;
-    case NONDETERMINISTIC:
-      etype = eiger::NONDETERMINISTIC;
-			break;
-		default:
-			throw "eigerbackend: addCol unhandled datakind";
-  }
-  eiger::Metric metric(etype, label, label);
-  metric.commit();
-  erow_.push_back(metric);
-}
-
-void EigerBackend::nextrow(const std::vector<std::pair<std::string, enum datakind> >& headers,
-                           const std::vector<double>& row){
-  // declare a trial, exec, etc and do all commits, then 
-  // do text since text handles row.clear().
-  std::ostringstream dsbuf; 
-  std::ostringstream ddbuf; 
-  dsbuf << appname_;
-  ddbuf << appname_;
-  std::vector<std::pair<std::string, enum datakind> >::size_type len = headers.size();
-  assert(row.size() == len && 0 != "eigerbackend::nextrow called with incomplete data");
-  int i = 0;
-  for(std::vector<std::pair<std::string, enum datakind> >::const_iterator it = headers.begin();
-      it != headers.end(); ++it, ++i){
-    if(it->second != DETERMINISTIC){ continue; }
-    dsbuf << "_" << row.at(i);
-    ddbuf << " " << it->first <<  "=" << row.at(i);
-  } 
-  std::string dsname = dsbuf.str();
-  std::string dsdesc = ddbuf.str();
-
-  eiger::ApplicationID aid = app_.getID();
-  eiger::Dataset ds(aid, dsname, dsdesc, "nURL");
-  ds.commit();
-  eiger::DatasetID dsid = ds.getID();
-
-  eiger::MachineID machid = machine_.getID();
-  eiger::Trial trial(dc_.getID(), machid, aid, dsid);
-  trial.commit();
-  eiger::Execution exec(trial.getID(),machid);
+  (void)prefix;
+  (void)suffix;
+  eiger::Connect(dbname);
+  machine_.commit();
+  app_.commit();
+  eiger::Metric exec(eiger::NONDETERMINISTIC, "time", "execution time in seconds");
   exec.commit();
-  eiger::ExecutionID eid = exec.getID();
-  int j = 0;
-  for(std::vector<std::pair<std::string, enum datakind> >::const_iterator it = headers.begin();
-      it != headers.end(); ++it, ++j){
-    eiger::MetricID mid = (erow_.at(j)).getID();
-    switch(it->second){
-    case DETERMINISTIC: {
-      eiger::DeterministicMetric dmD(dsid, mid, row.at(j));
-      dmD.commit();
-      break;
-      }
-    case NONDETERMINISTIC: {
-      eiger::NondeterministicMetric ndmD(eid, mid, row.at(j));
-      ndmD.commit();
-      break;
-      }
-    case RESULT: {
-      eiger::NondeterministicMetric rdmD(eid, mid, row.at(j));
-      rdmD.commit();
-      break;
-      }
-    default:
-      throw "unhandled htype in nextrow";
-    } 
+  exec_time_id_ = exec.getID();
+}
+
+void lwperf_eiger::add_invariant(const char* name, double value) {
+  invariants_.emplace(name, value);
+  eiger::Metric metric(eiger::DETERMINISTIC, name, name);
+  metric.commit();
+  metric_ids_[name] = metric.getID();
+}
+
+void lwperf_eiger::add_cite_param(const char* cite_name, const char* param_name,
+                                  double value) {
+  eiger::Metric metric(eiger::DETERMINISTIC, param_name, param_name);
+  metric.commit();
+  metric_ids_[param_name] = metric.getID();
+  auto cite = cites_.find(cite_name);
+  if(cite == end(cites_)){ // Need to make a new Cite
+    auto new_cite = Cite{cite_name, invariants_};
+    auto insert = cites_.emplace(cite_name, std::move(new_cite));
+    cite = insert.first;
   }
+  cite->second.addDetMetric(param_name, value);
+}
+
+void lwperf_eiger::log(const char* cite_name) {
+  auto& cite = cites_[cite_name];
+  // new dataset for this dc
+  std::ostringstream dset_name; 
+  dset_name << app_.name;
+  for(const auto& det_metric : cite.getDetMetrics()){
+    dset_name << "_" << det_metric.first << "_" << det_metric.second;
+  } 
+  eiger::Dataset dset(app_.getID(), dset_name.str(), dset_name.str(), "");
+  dset.commit();
+  eiger::DatasetID dsid = dset.getID();
+  // commit our saved values
+  for(const auto& det_metric : cite.getDetMetrics()){
+    eiger::DeterministicMetric metric(dsid, metric_ids_[det_metric.first],
+                                      det_metric.second);
+    metric.commit();
+  }
+  // new trial
+  eiger::Trial trial(cite.getDCID(), machine_.getID(), app_.getID(), dsid);
+  // save trialID to the Cite
+  cite.trial_id = trial.getID();
+  // start timer
+  cite.start_time = std::chrono::high_resolution_clock::now();
+}
+
+void lwperf_eiger::stop(const char* cite_name) {
+  // stop timer
+  auto end_time = std::chrono::high_resolution_clock::now();
+  auto& cite = cites_[cite_name];
+  auto elapsed_time = std::chrono::duration<double>(end_time - cite.start_time);
+  // create new nondetmetric for exec time and commit
+  eiger::NondeterministicMetric metric(cite.trial_id, exec_time_id_, elapsed_time);
+  metric.commit();
 }
 

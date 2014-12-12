@@ -12,17 +12,14 @@ extern "C" {
 #define LWPERF_PRIMITIVE_CAT(x, y) x ## y
 #define LWPERF_CAT(x,y) LWPERF_PRIMITIVE_CAT(x,y)
 
+// TODO: CSV and EIGER_MODEL
 #if defined(_USE_EIGER)
 #define LWPERF_IMPL_BASE eiger
-#elif defined(_USE_FAKEEIGER)
-#define LWPERF_IMPL_BASE fake
-#elif defined(_USE_EIGER_MODEL)
-#define LWPERF_IMPL_BASE model
 #else
 #define LWPERF_IMPL_BASE null
 #endif
 
-#define LWPERF_IMPL LWPERF_CAT(lwperf, LWPERF_IMPL_BASE)
+#define LWPERF_IMPL LWPERF_CAT(lwperf_, LWPERF_IMPL_BASE)
 
 typedef struct LWPERF_IMPL* lwperf_t;
 #define lwperf_init_impl LWPERF_CAT(lwperf_init_, LWPERF_IMPL_BASE)
@@ -35,35 +32,27 @@ typedef struct LWPERF_IMPL* lwperf_t;
 /* Backend implementations */
 
 /* null backend */
-lwperf_t lwperf_init_null(const char* machine, const char* application,
+typedef struct lwperf_eiger lwperf_eiger;
+lwperf_null* lwperf_init_null(const char* machine, const char* application,
                           const char* dbname, const char* prefix,
                           const char* suffix);
-void lwperf_finalize_null(lwperf_t perf);
-void lwperf_add_invariant_null(lwperf_t perf, const char* name, double value);
-void lwperf_add_cite_param_null(lwperf_t perf, const char* cite_name,
+void lwperf_finalize_null(lwperf_null* perf);
+void lwperf_add_invariant_null(lwperf_null* perf, const char* name, double value);
+void lwperf_add_cite_param_null(lwperf_null* perf, const char* cite_name,
                                 const char* param_name, double value);
-void lwperf_log_null(lwperf_t perf, const char* cite_name);
-void lwperf_stop_null(lwperf_t perf, const char* cite_name);
+void lwperf_log_null(lwperf_null* perf, const char* cite_name);
+void lwperf_stop_null(lwperf_null* perf, const char* cite_name);
 /* eiger backend */
-lwperf_t lwperf_init_eiger(const char* machine, const char* application,
+typedef struct lwperf_eiger lwperf_eiger;
+lwperf_eiger* lwperf_init_eiger(const char* machine, const char* application,
                            const char* dbname, const char* prefix,
                            const char* suffix);
-void lwperf_finalize_eiger(lwperf_t perf);
-void lwperf_add_invariant_eiger(lwperf_t perf, const char* name, double value);
-void lwperf_add_cite_param_eiger(lwperf_t perf, const char* cite_name,
+void lwperf_finalize_eiger(lwperf_eiger* perf);
+void lwperf_add_invariant_eiger(lwperf_eiger* perf, const char* name, double value);
+void lwperf_add_cite_param_eiger(lwperf_eiger* perf, const char* cite_name,
                                  const char* param_name, double value);
-void lwperf_log_eiger(lwperf_t perf, const char* cite_name);
-void lwperf_stop_eiger(lwperf_t perf, const char* cite_name);
-/* fake backend */
-lwperf_t lwperf_init_fake(const char* machine, const char* application,
-                          const char* dbname, const char* prefix,
-                          const char* suffix);
-void lwperf_finalize_fake(lwperf_t perf);
-void lwperf_add_invariant_fake(lwperf_t perf, const char* name, double value);
-void lwperf_add_cite_param_fake(lwperf_t perf, const char* cite_name,
-                                const char* param_name, double value);
-void lwperf_log_fake(lwperf_t perf, const char* cite_name);
-void lwperf_stop_fake(lwperf_t perf, const char* cite_name);
+void lwperf_log_eiger(lwperf_eiger* perf, const char* cite_name);
+void lwperf_stop_eiger(lwperf_eiger* perf, const char* cite_name);
 
 /* Helper macros */
 #define LWPERF_NARGS_SEQ(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, \
