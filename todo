@@ -1,5 +1,23 @@
-Consider implementing everything in C++ with templates (which are pretty much
+* Consider implementing everything in C++ with templates (which are pretty much
 macros anyway), and exposing a C/fortran API as necessary.
+* What would make this thread-safe?
+    The actual measurement count is done per thread (or process??).
+    A new data point is made per thread (ie each entry to the backend is independent)
+        This would require a mutex around the backend (require c++11? that's probably ok)
+* Runtime warning after execution if a start doesn't enter a matching stop
+
+
+template<typename T, typename... Targs>
+void parse(T value, Targs... rest){
+    add(value);
+}
+
+template<typename T>
+add(T value);
+
+template<>
+add<datakind::RESULT>(datakind::RESULT value);
+
 
 Add in timer so we can handle overflow.
     Necessary? Are any compute regions greater than ~60 secs?
