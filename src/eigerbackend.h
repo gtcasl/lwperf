@@ -9,9 +9,10 @@
 
 class Cite {
   private:
-    eiger::DataCollection dc_;
+    eiger::DataCollectionID dc_id_;
     std::unordered_map<std::string, double> det_metrics_;
   public:
+    Cite() {}
     Cite(const char* name, const std::unordered_map<std::string, double>& invariants);
     void addDetMetric(const std::string& name, double value);
     const std::unordered_map<std::string, double>& getDetMetrics() const;
@@ -20,7 +21,7 @@ class Cite {
     std::chrono::time_point<std::chrono::high_resolution_clock> start_time;
 };
 
-class EigerBackend{
+class lwperf_eiger{
   private:
     eiger::Machine machine_;
     eiger::Application app_;
@@ -35,9 +36,7 @@ class EigerBackend{
     void log(const char* cite_name);
     void stop(const char* cite_name);
 
-    EigerBackend(const char* machine, const char* application, const char* dbname,
+    lwperf_eiger(const char* machine, const char* application, const char* dbname,
                  const char* prefix, const char* suffix);
-    ~EigerBackend();
+    ~lwperf_eiger();
 };
-
-typedef EigerBackend lwperf_eiger;
