@@ -20,7 +20,7 @@ class Cite {
     std::chrono::time_point<std::chrono::high_resolution_clock> start_time;
 };
 
-class lwperf_eiger{
+class EigerBackend{
   private:
     eiger::Machine machine_;
     eiger::Application app_;
@@ -35,7 +35,9 @@ class lwperf_eiger{
     void log(const char* cite_name);
     void stop(const char* cite_name);
 
-    lwperf_eiger(const char* machine, const char* application, const char* dbname,
+    EigerBackend(const char* machine, const char* application, const char* dbname,
                  const char* prefix, const char* suffix);
-    ~lwperf_eiger();
+    ~EigerBackend();
 };
+
+typedef EigerBackend lwperf_eiger;

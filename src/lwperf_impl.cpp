@@ -1,6 +1,6 @@
 #include "eigerbackend.h"
 
-#include "perf_api.h"
+#include "lwperf_impl.h"
 
 extern "C" {
 

@@ -1,9 +1,8 @@
-* Rename the implementation classes.
+* configure.ac to look for c++11
 * Add doxygen comments for the APIs?
 * Change fake/eiger backends to immediate/delayed (meaning: to file, or to mem and file afterwards)
+    Maybe a flag at compile time (c api header) to choose memoized execution?
 * Use macro voodoo to turn EIGER_MODEL stuff into gotos, rather than if(0) calls. --> Probably bad, breaks return address stack
-* Consider implementing everything in C++ with templates (which are pretty much
-macros anyway), and exposing a C/fortran API as necessary.
 * What would make this thread-safe?
     The actual measurement count is done per thread (or process??).
     A new data point is made per thread (ie each entry to the backend is independent)
