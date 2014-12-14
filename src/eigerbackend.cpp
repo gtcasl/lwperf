@@ -24,7 +24,7 @@ eiger::DataCollectionID Cite::getDCID() {
   return dc_id_;
 }
 
-lwperf_eiger::lwperf_eiger(const char* machine, const char* application,
+EigerBackend::EigerBackend(const char* machine, const char* application,
                            const char* dbname, const char* prefix,
                            const char* suffix)
     : machine_(machine, machine),
@@ -41,18 +41,18 @@ lwperf_eiger::lwperf_eiger(const char* machine, const char* application,
 }
 
 
-lwperf_eiger::~lwperf_eiger() {
+EigerBackend::~EigerBackend() {
   eiger::Disconnect();
 }
 
-void lwperf_eiger::add_invariant(const char* name, double value) {
+void EigerBackend::add_invariant(const char* name, double value) {
   invariants_.emplace(name, value);
   eiger::Metric metric(eiger::DETERMINISTIC, name, name);
   metric.commit();
   metric_ids_[name] = metric.getID();
 }
 
-void lwperf_eiger::add_cite_param(const char* cite_name, const char* param_name,
+void EigerBackend::add_cite_param(const char* cite_name, const char* param_name,
                                   double value) {
   eiger::Metric metric(eiger::DETERMINISTIC, param_name, param_name);
   metric.commit();
@@ -66,7 +66,7 @@ void lwperf_eiger::add_cite_param(const char* cite_name, const char* param_name,
   cite->second.addDetMetric(param_name, value);
 }
 
-void lwperf_eiger::log(const char* cite_name) {
+void EigerBackend::log(const char* cite_name) {
   auto& cite = cites_[cite_name];
   // new dataset for this dc
   std::ostringstream dset_name; 
@@ -91,7 +91,7 @@ void lwperf_eiger::log(const char* cite_name) {
   cite.start_time = std::chrono::high_resolution_clock::now();
 }
 
-void lwperf_eiger::stop(const char* cite_name) {
+void EigerBackend::stop(const char* cite_name) {
   // stop timer
   auto end_time = std::chrono::high_resolution_clock::now();
   auto& cite = cites_[cite_name];
