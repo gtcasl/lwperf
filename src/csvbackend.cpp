@@ -1,42 +1,57 @@
 #include <vector>
-#include <cassert>
+#include <fstream>
+#include <sstream>
 
 #include "csvbackend.h"
 
-enum datakind;
 
-CSVBackend::CSVBackend(std::string filename, std::string machine, 
-    std::string application, bool append) : filename_(filename) 
-{
-    f_ = fopen(filename_.c_str(),(append?"a+":"w+"));
-    if(!f_){
-      throw "csvbackend: cannot open file";
+template<typename T>
+void print_comma_separated(std::ofstream& out, const std::vector<T>& things) {
+  const auto& last = things.back();
+  for(const auto& elem : things) {
+    if(elem != last){
+      out << elem << ",";
+    } else {
+      out << elem;
     }
-}
-
-CSVBackend::~CSVBackend(){
-  if(f_) fclose(f_); 
-  f_=0; 
-}
-
-void CSVBackend::writeheaders(const std::vector<std::pair<std::string, enum datakind> >& headers) {
-  fprintf(f_,"\"%s\"\n",filename_.c_str());
-  for(std::vector<std::pair<std::string, enum datakind> >::const_iterator it = headers.begin();
-      it != headers.end(); ++it){
-    fprintf(f_,"\"%s\",",it->first.c_str());
   }
-  fprintf(f_,"\n");
 }
 
-void CSVBackend::nextrow(const std::vector<std::pair<std::string, enum datakind> >& headers,
-                         const std::vector<double>& row){
-  std::vector<std::pair<std::string, enum datakind> >::size_type len = headers.size();
-  assert(row.size() == len && 0 != "csvbackend::nextrow called with incomplete data");
-  for(std::vector<double>::const_iterator it = row.begin();
-      it != row.end(); ++it){
-    fprintf(f_, "%.18g",*it);
-    fprintf(f_,", ");
+template<typename T>
+void print_comma_separated(std::ofstream& out, const std::vector<T>& first,
+                           const std::vector<T>& second,
+                           const std::vector<T>& third){
+  print_comma_separated(out, first);
+  if(!first.empty() && !second.empty()){
+    out << ",";
   }
-  fprintf(f_,"\n");
+  print_comma_separated(out, second);
+  if(!second.empty() && !third.empty()){
+    out << ",";
+  }
+  print_comma_separated(out, third);
+  out << "\n";
+}
+
+CSVBackend::CSVBackend(const char* cite_name) {
+  std::stringstream file_ss;
+  file_ss << cite_name << ".csv";
+  output_file_.open(file_ss.str());
+}
+
+
+void CSVBackend::commit_headers(const std::vector<std::string>& invariant_names,
+                                const std::vector<std::string>& parameter_names,
+                                const std::vector<std::string>& result_names) {
+  print_comma_separated(output_file_, invariant_names, parameter_names,
+                        result_names);
+}
+
+void CSVBackend::commit_values(
+    const std::vector<double>& invariant_values,
+    const std::vector<double>& parameter_values,
+    const std::vector<double>& result_values) {
+  print_comma_separated(output_file_, invariant_values, parameter_values,
+                        result_values);
 }
 

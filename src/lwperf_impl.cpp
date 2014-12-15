@@ -1,34 +1,11 @@
+#include "logger.h"
 #include "eigerbackend.h"
+#include "csvbackend.h"
 
 #include "lwperf_impl.h"
 
-template<typename Backend>
-class lwperf {
-  private:
-    Backend backend;
-  public:
-    template<typename... Args>
-    lwperf(Args&&... args) : backend{std::forward<Args>(args)...} {}
-    template<typename... Args>
-    void add_invariant(Args&&... args) {
-      backend.add_invariant(std::forward<Args>(args)...);
-    }
-    template<typename... Args>
-    void add_cite_param(Args&&... args) {
-      backend.add_cite_param(std::forward<Args>(args)...);
-    }
-    template<typename... Args>
-    void log(Args&&... args) {
-      backend.log(std::forward<Args>(args)...);
-    }
-    template<typename... Args>
-    void stop(Args&&... args) {
-      backend.stop(std::forward<Args>(args)...);
-    }
-};
-
-class lwperf_eiger : public lwperf<EigerBackend> {
-  using lwperf::lwperf;
+class lwperf_eiger : public Logger<EigerBackend> {
+  using Logger::Logger;
 };
 
 extern "C" {

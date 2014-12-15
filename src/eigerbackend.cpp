@@ -5,100 +5,99 @@
 
 #include "eigerbackend.h"
 
-Cite::Cite(const char* name, const std::unordered_map<std::string, double>& invariants) 
-  : det_metrics_(invariants) {
-  eiger::DataCollection dc(name, name);
-  dc.commit();
-  dc_id_ = dc.getID();
-}
-
-void Cite::addDetMetric(const std::string& name, double value) {
-  det_metrics_[name] = value;
-}
-
-const std::unordered_map<std::string, double>& Cite::getDetMetrics() const {
-  return det_metrics_;
-}
-
-eiger::DataCollectionID Cite::getDCID() {
-  return dc_id_;
-}
-
-EigerBackend::EigerBackend(const char* machine, const char* application,
-                           const char* dbname, const char* prefix,
-                           const char* suffix)
-    : machine_(machine, machine),
-      app_(application, application)
-{
+void EigerBackend::register_configuration(const char* machine,
+                                          const char* application,
+                                          const char* dbname,
+                                          const char* prefix,
+                                          const char* suffix) {
   (void)prefix;
   (void)suffix;
   eiger::Connect(dbname);
-  machine_.commit();
-  app_.commit();
-  eiger::Metric exec(eiger::NONDETERMINISTIC, "time", "execution time in seconds");
-  exec.commit();
-  exec_time_id_ = exec.getID();
+  eiger::Machine e_machine(machine, machine);
+  e_machine.commit();
+  EigerBackend::machine_id_ = e_machine.getID();
+  eiger::Application e_app(application, application);
+  e_app.commit();
+  EigerBackend::app_id_ = e_app.getID();
+  app_name_ = application;
 }
 
+EigerBackend::EigerBackend(const char* cite_name) {
+  eiger::DataCollection dc(cite_name, cite_name);
+  dc.commit();
+  dc_id_ = dc.getID();
+}
 
 EigerBackend::~EigerBackend() {
   eiger::Disconnect();
 }
 
-void EigerBackend::add_invariant(const char* name, double value) {
-  invariants_.emplace(name, value);
-  eiger::Metric metric(eiger::DETERMINISTIC, name, name);
-  metric.commit();
-  metric_ids_[name] = metric.getID();
-}
-
-void EigerBackend::add_cite_param(const char* cite_name, const char* param_name,
-                                  double value) {
-  eiger::Metric metric(eiger::DETERMINISTIC, param_name, param_name);
-  metric.commit();
-  metric_ids_[param_name] = metric.getID();
-  auto cite = cites_.find(cite_name);
-  if(cite == end(cites_)){ // Need to make a new Cite
-    auto new_cite = Cite{cite_name, invariants_};
-    auto insert = cites_.emplace(cite_name, std::move(new_cite));
-    cite = insert.first;
+void EigerBackend::commit_headers(
+    const std::vector<std::string>& invariant_names,
+    const std::vector<std::string>& parameter_names,
+    const std::vector<std::string>& result_names) {
+  // precondition: this only gets called once
+  invariant_names_ = invariant_names;
+  parameter_names_ = parameter_names;
+  for(const auto& invariant : invariant_names){
+    eiger::Metric metric(eiger::DETERMINISTIC, invariant, invariant);
+    metric.commit();
+    invariant_metrics_.emplace_back(metric.getID());
   }
-  cite->second.addDetMetric(param_name, value);
+  for(const auto& parameter : parameter_names){
+    eiger::Metric metric(eiger::DETERMINISTIC, parameter, parameter);
+    metric.commit();
+    parameter_metrics_.emplace_back(metric.getID());
+  }
+  for(const auto& result : result_names){
+    eiger::Metric metric(eiger::NONDETERMINISTIC, result, result);
+    metric.commit();
+    result_metrics_.emplace_back(metric.getID());
+  }
 }
 
-void EigerBackend::log(const char* cite_name) {
-  auto& cite = cites_[cite_name];
-  // new dataset for this dc
+void EigerBackend::commit_values(
+    const std::vector<double>& invariant_values,
+    const std::vector<double>& parameter_values,
+    const std::vector<double>& result_values) {
   std::ostringstream dset_name; 
-  dset_name << app_.name;
-  for(const auto& det_metric : cite.getDetMetrics()){
-    dset_name << "_" << det_metric.first << "_" << det_metric.second;
-  } 
-  eiger::Dataset dset(app_.getID(), dset_name.str(), dset_name.str(), "");
+  dset_name << EigerBackend::app_name_;
+  for(const auto& i_name : invariant_names_){
+    dset_name << "_" << i_name;
+  }
+  for(const auto& i_value : invariant_values){
+    dset_name << "_" << i_value;
+  }
+  for(const auto& p_name : parameter_names_){
+    dset_name << "_" << p_name;
+  }
+  for(const auto& p_value : parameter_values){
+    dset_name << "_" << p_value;
+  }
+  eiger::Dataset dset(EigerBackend::app_id_, dset_name.str(), dset_name.str(), "");
   dset.commit();
   eiger::DatasetID dsid = dset.getID();
-  // commit our saved values
-  for(const auto& det_metric : cite.getDetMetrics()){
-    eiger::DeterministicMetric metric(dsid, metric_ids_[det_metric.first],
-                                      det_metric.second);
+  for(unsigned int invariant_idx = 0; invariant_idx < invariant_values.size();
+      ++invariant_idx){
+    eiger::DeterministicMetric metric(dsid, invariant_metrics_[invariant_idx],
+                                      invariant_values[invariant_idx]);
     metric.commit();
   }
-  // new trial
-  eiger::Trial trial(cite.getDCID(), machine_.getID(), app_.getID(), dsid);
-  // save trialID to the Cite
-  cite.trial_id = trial.getID();
-  // start timer
-  cite.start_time = std::chrono::high_resolution_clock::now();
-}
-
-void EigerBackend::stop(const char* cite_name) {
-  // stop timer
-  auto end_time = std::chrono::high_resolution_clock::now();
-  auto& cite = cites_[cite_name];
-  auto elapsed_time =
-      std::chrono::duration<double>(end_time - cite.start_time).count();
-  // create new nondetmetric for exec time and commit
-  eiger::NondeterministicMetric metric(cite.trial_id, exec_time_id_, elapsed_time);
-  metric.commit();
+  for(unsigned int param_idx = 0; param_idx < parameter_values.size();
+      ++param_idx){
+    eiger::DeterministicMetric metric(dsid, parameter_metrics_[param_idx],
+                                      parameter_values[param_idx]);
+    metric.commit();
+  }
+  eiger::Trial trial(dc_id_, EigerBackend::machine_id_, EigerBackend::app_id_,
+                     dsid);
+  trial.commit();
+  auto t_id = trial.getID();
+  for(unsigned int result_idx = 0; result_idx < result_values.size();
+      ++result_idx){
+    eiger::NondeterministicMetric metric(t_id, result_metrics_[result_idx],
+                                         result_values[result_idx]);
+    metric.commit();
+  }
 }
 
