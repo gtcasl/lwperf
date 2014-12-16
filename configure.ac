@@ -26,6 +26,22 @@ AC_ARG_WITH([eiger-lib-path],
 			[EIGER_LIBS='-leiger'])
 AC_SUBST([EIGER_LIBS])
 
+# papi
+AC_ARG_WITH([papi-include-path],
+			[AS_HELP_STRING([--with-papi-include-path],
+							[location of the papi headers, defaults to /usr/include])],
+			[PAPI_CFLAGS="-I$withval"],
+			[PAPI_CFLAGS='-I/usr/include'])
+AC_SUBST([PAPI_CFLAGS])
+
+AC_ARG_WITH([papi-lib-path],
+			[AS_HELP_STRING([--with-papi-lib-path],
+							[location of the papi library])],
+			[PAPI_LIBS="-L$withval -lpapi"],
+			[PAPI_LIBS='-lpapi'])
+AC_SUBST([PAPI_LIBS])
+
+
 AC_CONFIG_HEADERS([config/config.h])
 AC_CONFIG_FILES([Makefile src/Makefile])
 AC_OUTPUT
