@@ -103,5 +103,9 @@ void EigerBackend::commit_values(
   }
 }
 
+eiger::MachineID EigerBackend::machine_id_;
+eiger::ApplicationID EigerBackend::app_id_;
+std::string EigerBackend::app_name_;
+
 } // end namespace lwperf
 

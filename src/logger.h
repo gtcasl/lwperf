@@ -6,6 +6,7 @@
 #include <vector>
 #include <string>
 #include <iostream>
+#include <memory>
 
 #ifdef USE_PAPI
 #include <papi.h>
@@ -100,22 +101,27 @@ class Logger {
       Backend::register_configuration(machine, application, dbname, prefix,
                                       suffix);
     }
-    ~Logger();
     void add_invariant(const char* name, double value) {
-      invariants_.addPair(name, value);
+      auto variant = std::find(begin(invariants_.names), end(invariants_.names), name);
+      if(variant != end(invariants_.names)){
+        auto idx = std::distance(begin(invariants_.names), variant);
+        invariants_.values[idx] = value;
+      } else {
+        invariants_.addPair(name, value);
+      }
     }
     void add_cite_param(const char* cite_name, const char* param_name,
                         double value) {
       auto cite = cites_.find(cite_name);
       if(cite == end(cites_)){ // Need to make a new Cite
-        auto new_cite = Cite<Backend>{cite_name};
+        std::unique_ptr<Cite<Backend>> new_cite{new Cite<Backend>(cite_name)};
         auto insert = cites_.emplace(cite_name, std::move(new_cite));
         cite = insert.first;
       }
-      cite->second.addDetMetric(param_name, value);
+      cite->second->addDetMetric(param_name, value);
     }
     void log(const char* cite_name) {
-      auto& cite = cites_[cite_name];
+      auto& cite = *cites_[cite_name].get();
 #ifdef USE_PAPI
       int retval = PAPI_start(cite.eventset);
       if(retval != PAPI_OK){
@@ -127,7 +133,7 @@ class Logger {
     }
     void stop(const char* cite_name) {
       auto end_time = std::chrono::high_resolution_clock::now();
-      auto& cite = cites_[cite_name];
+      auto& cite = *cites_[cite_name].get();
 #ifdef USE_PAPI
       long long elapsed_energy;
       int retval = PAPI_stop(cite.eventset, &elapsed_energy);
@@ -147,7 +153,7 @@ class Logger {
       cite.commit(invariants_.names, invariants_.values, result_names, result_values);
     }
   private:
-    std::unordered_map<std::string, Cite<Backend>> cites_;
+    std::unordered_map<std::string, std::unique_ptr<Cite<Backend>>> cites_;
     NameValuePairs invariants_;
 };
 

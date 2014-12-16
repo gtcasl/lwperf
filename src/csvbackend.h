@@ -12,7 +12,6 @@ class CSVBackend{
     std::unique_ptr<std::ofstream> output_file_;
 
   public:
-    CSVBackend() {}
     CSVBackend(const char* cite_name);
     static void register_configuration(const char* machine, const char* application,
                                        const char* dbname, const char* prefix,

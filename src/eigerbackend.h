@@ -11,7 +11,6 @@ namespace lwperf {
 
 class EigerBackend{
   public:
-    EigerBackend() {}
     EigerBackend(const char* cite_name);
     ~EigerBackend();
     static void register_configuration(const char* machine, const char* application,
