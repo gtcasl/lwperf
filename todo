@@ -1,4 +1,3 @@
-* wire up csv backend in main API (ie lwperf_csv)
 * namespace these bitches
 * configure.ac to look for c++11
 * Add doxygen comments for the APIs?

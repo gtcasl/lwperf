@@ -12,9 +12,11 @@ extern "C" {
 #define LWPERF_PRIMITIVE_CAT(x, y) x ## y
 #define LWPERF_CAT(x,y) LWPERF_PRIMITIVE_CAT(x,y)
 
-// TODO: CSV and EIGER_MODEL
+// TODO: EIGER_MODEL
 #if defined(_USE_EIGER)
 #define LWPERF_IMPL_BASE eiger
+#elif defined(_USE_CSV)
+#define LWPERF_IMPL_BASE csv
 #else
 #define LWPERF_IMPL_BASE null
 #endif
@@ -42,6 +44,7 @@ void lwperf_add_cite_param_null(lwperf_null* perf, const char* cite_name,
                                 const char* param_name, double value);
 void lwperf_log_null(lwperf_null* perf, const char* cite_name);
 void lwperf_stop_null(lwperf_null* perf, const char* cite_name);
+
 /* eiger backend */
 typedef struct lwperf_eiger lwperf_eiger;
 lwperf_eiger* lwperf_init_eiger(const char* machine, const char* application,
@@ -53,6 +56,18 @@ void lwperf_add_cite_param_eiger(lwperf_eiger* perf, const char* cite_name,
                                  const char* param_name, double value);
 void lwperf_log_eiger(lwperf_eiger* perf, const char* cite_name);
 void lwperf_stop_eiger(lwperf_eiger* perf, const char* cite_name);
+
+/* csv backend */
+typedef struct lwperf_csv lwperf_csv;
+lwperf_csv* lwperf_init_csv(const char* machine, const char* application,
+                           const char* dbname, const char* prefix,
+                           const char* suffix);
+void lwperf_finalize_csv(lwperf_csv* perf);
+void lwperf_add_invariant_csv(lwperf_csv* perf, const char* name, double value);
+void lwperf_add_cite_param_csv(lwperf_csv* perf, const char* cite_name,
+                                 const char* param_name, double value);
+void lwperf_log_csv(lwperf_csv* perf, const char* cite_name);
+void lwperf_stop_csv(lwperf_csv* perf, const char* cite_name);
 
 /* Helper macros */
 #define LWPERF_NARGS_SEQ(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, \

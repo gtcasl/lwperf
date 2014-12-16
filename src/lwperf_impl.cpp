@@ -4,7 +4,11 @@
 
 #include "lwperf_impl.h"
 
-class lwperf_eiger : public Logger<EigerBackend> {
+struct lwperf_eiger : public Logger<EigerBackend> {
+  using Logger::Logger;
+};
+
+struct lwperf_csv : public Logger<CSVBackend> {
   using Logger::Logger;
 };
 
@@ -75,6 +79,34 @@ void lwperf_log_eiger(lwperf_eiger* perf, const char* cite_name) {
 }
 
 void lwperf_stop_eiger(lwperf_eiger* perf, const char* cite_name) {
+  perf->stop(cite_name);
+}
+
+/* csv backend */
+lwperf_csv* lwperf_init_csv(const char* machine, const char* application,
+                           const char* dbname, const char* prefix,
+                           const char* suffix) {
+  return new lwperf_csv(machine, application, dbname, prefix, suffix);
+}
+
+void lwperf_finalize_csv(lwperf_csv* perf) {
+  delete perf;
+}
+
+void lwperf_add_invariant_csv(lwperf_csv* perf, const char* name, double value) {
+  perf->add_invariant(name, value);
+}
+
+void lwperf_add_cite_param_csv(lwperf_csv* perf, const char* cite_name,
+                                 const char* param_name, double value) {
+  perf->add_cite_param(cite_name, param_name, value);
+}
+
+void lwperf_log_csv(lwperf_csv* perf, const char* cite_name) {
+  perf->log(cite_name);
+}
+
+void lwperf_stop_csv(lwperf_csv* perf, const char* cite_name) {
   perf->stop(cite_name);
 }
 
