@@ -10,7 +10,7 @@ template<typename T>
 void print_comma_separated(std::ofstream& out, const std::vector<T>& things) {
   const auto& last = things.back();
   for(const auto& elem : things) {
-    if(elem != last){
+    if(&elem != &last){
       out << elem << ",";
     } else {
       out << elem;

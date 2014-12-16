@@ -1,10 +1,5 @@
-* papi integration: add papi to configure.ac
 * fortran api on top of c api
 * c++ api on top of c api
-* Change fake/eiger backends to immediate/delayed (meaning: to file, or to mem and file afterwards)
-    Maybe a flag at compile time (c api header) to choose memoized execution?
-
-
 template<typename T, typename... Targs>
 void parse(T value, Targs... rest){
     add(value);

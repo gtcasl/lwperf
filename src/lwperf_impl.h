@@ -34,7 +34,7 @@ typedef struct LWPERF_IMPL* lwperf_t;
 /* Backend implementations */
 
 /* null backend */
-typedef struct lwperf_eiger lwperf_eiger;
+typedef struct lwperf_null lwperf_null;
 lwperf_null* lwperf_init_null(const char* machine, const char* application,
                           const char* dbname, const char* prefix,
                           const char* suffix);
@@ -78,8 +78,9 @@ void lwperf_stop_csv(lwperf_csv* perf, const char* cite_name);
                    -1, 2, -1, 1, -1)
 
 /* Convenience macro for adding multiple params in one go */
-#define lwperf_add_cite_params_impl(perf, name, ...) \
+#define lwperf_add_cite_params_impl(perf, name, ...)                        \
   LWPERF_CAT(lwperf_add_cite_param_, LWPERF_NARGS(__VA_ARGS__))(perf, name, \
+                                                                __VA_ARGS__)
 
 /* lwperf_add_cite_param_n declarations */
 inline void lwperf_add_cite_param_1(lwperf_t perf, const char* cite_name,
