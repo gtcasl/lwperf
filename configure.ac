@@ -1,12 +1,15 @@
 AC_INIT([lwperf], [2.0], [eanger@gatech.edu])
 AC_CONFIG_AUX_DIR([config])
 AM_INIT_AUTOMAKE([foreign -Wall -Werror])
-AC_CONFIG_MACRO_DIR([m4])
+AC_CONFIG_MACRO_DIR([acinclude])
 AM_PROG_AR
 
 AC_PROG_CXX
 
 LT_INIT
+
+# c++11
+AX_CXX_COMPILE_STDCXX_11
 
 # eiger
 AC_ARG_WITH([eiger-include-path],
