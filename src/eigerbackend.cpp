@@ -5,6 +5,8 @@
 
 #include "eigerbackend.h"
 
+namespace lwperf {
+
 void EigerBackend::register_configuration(const char* machine,
                                           const char* application,
                                           const char* dbname,
@@ -100,4 +102,6 @@ void EigerBackend::commit_values(
     metric.commit();
   }
 }
+
+} // end namespace lwperf
 

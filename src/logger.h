@@ -5,6 +5,8 @@
 #include <chrono>
 #include <vector>
 
+namespace lwperf {
+
 struct NameValuePairs {
   void addPair(std::string name, double value) {
     names.emplace_back(name);
@@ -86,3 +88,5 @@ class Logger {
     std::unordered_map<std::string, Cite> cites_;
     NameValuePairs invariants_;
 };
+
+} // end namespace lwperf

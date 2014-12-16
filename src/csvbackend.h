@@ -3,10 +3,13 @@
 #include <string>
 #include <fstream>
 #include <vector>
+#include <memory>
+
+namespace lwperf {
 
 class CSVBackend{
   private:
-    std::ofstream output_file_;
+    std::unique_ptr<std::ofstream> output_file_;
 
   public:
     CSVBackend() {}
@@ -21,3 +24,5 @@ class CSVBackend{
                        const std::vector<double>& parameter_values,
                        const std::vector<double>& result_values);
 };
+
+} // end namespace lwperf

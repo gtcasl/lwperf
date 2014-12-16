@@ -7,6 +7,8 @@
 
 #include <eiger.h>
 
+namespace lwperf {
+
 class EigerBackend{
   public:
     EigerBackend() {}
@@ -32,3 +34,5 @@ class EigerBackend{
     std::vector<std::string> parameter_names_;
     std::vector<eiger::MetricID> result_metrics_;
 };
+
+} // end namespace lwperf

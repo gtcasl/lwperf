@@ -4,11 +4,11 @@
 
 #include "lwperf_impl.h"
 
-struct lwperf_eiger : public Logger<EigerBackend> {
+struct lwperf_eiger : public lwperf::Logger<lwperf::EigerBackend> {
   using Logger::Logger;
 };
 
-struct lwperf_csv : public Logger<CSVBackend> {
+struct lwperf_csv : public lwperf::Logger<lwperf::CSVBackend> {
   using Logger::Logger;
 };
 
