@@ -1,12 +1,5 @@
-* remove underscore from beginning of config macro names
-    add LWPERF prefix, for namespacing?
-
-
-
-
-
-
 * Add documentation about naming convention/requirements
+    and general documentation improvements
 * fortran api on top of c api
 * c++ api on top of c api
 template<typename T, typename... Targs>

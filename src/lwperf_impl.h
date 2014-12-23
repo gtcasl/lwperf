@@ -14,11 +14,11 @@ extern "C" {
 #define LWPERF_PRIMITIVE_CAT(x, y) x ## y
 #define LWPERF_CAT(x,y) LWPERF_PRIMITIVE_CAT(x,y)
 
-#if defined(_USE_EIGER)
+#if defined(LWPERF_USE_EIGER)
 #define LWPERF_IMPL_BASE eiger
-#elif defined(_USE_CSV)
+#elif defined(LWPERF_USE_CSV)
 #define LWPERF_IMPL_BASE csv
-#elif defined(_USE_EIGER_MODEL)
+#elif defined(LWPERF_USE_SSTMAC)
 #define LWPERF_IMPL_BASE sstmac
 #else
 #define LWPERF_IMPL_BASE null
