@@ -1,5 +1,6 @@
 #pragma once
 
+#include "lwperf_config.h"
 #include <algorithm>
 #include <unordered_map>
 #include <chrono>
@@ -8,7 +9,7 @@
 #include <iostream>
 #include <memory>
 
-#ifdef USE_PAPI
+#ifdef LWPERF_HAVE_PAPI
 #include <papi.h>
 #endif
 
@@ -37,7 +38,7 @@ class Cite {
  public:
   Cite() {}
   Cite(const char* name) : backend{name}, headers_committed{false} 
-#ifdef USE_PAPI
+#ifdef LWPERF_HAVE_PAPI
       , eventset{PAPI_NULL} 
   {
     int retval;
@@ -101,6 +102,7 @@ class Logger {
       Backend::register_configuration(machine, application, dbname, prefix,
                                       suffix);
     }
+
     void add_invariant(const char* name, double value) {
       auto variant = std::find(begin(invariants_.names), end(invariants_.names), name);
       if(variant != end(invariants_.names)){
@@ -110,6 +112,7 @@ class Logger {
         invariants_.addPair(name, value);
       }
     }
+
     void add_cite_param(const char* cite_name, const char* param_name,
                         double value) {
       auto cite = cites_.find(cite_name);
@@ -120,9 +123,10 @@ class Logger {
       }
       cite->second->addDetMetric(param_name, value);
     }
+
     void log(const char* cite_name) {
       auto& cite = *cites_[cite_name].get();
-#ifdef USE_PAPI
+#ifdef LWPERF_HAVE_PAPI
       int retval = PAPI_start(cite.eventset);
       if(retval != PAPI_OK){
         PAPI_perror(NULL);
@@ -131,10 +135,11 @@ class Logger {
 #endif
       cite.start_time = std::chrono::high_resolution_clock::now();
     }
+
     void stop(const char* cite_name) {
       auto end_time = std::chrono::high_resolution_clock::now();
       auto& cite = *cites_[cite_name].get();
-#ifdef USE_PAPI
+#ifdef LWPERF_HAVE_PAPI
       long long elapsed_energy;
       int retval = PAPI_stop(cite.eventset, &elapsed_energy);
       if(retval != PAPI_OK){
@@ -146,12 +151,13 @@ class Logger {
           std::chrono::duration<double>(end_time - cite.start_time).count();
       std::vector<std::string> result_names = {"time"};
       std::vector<double> result_values = {elapsed_time};
-#ifdef USE_PAPI
+#ifdef LWPERF_HAVE_PAPI
       result_names.emplace_back(kEventName);
       result_values.emplace_back(elapsed_energy);
 #endif
       cite.commit(invariants_.names, invariants_.values, result_names, result_values);
     }
+
   private:
     std::unordered_map<std::string, std::unique_ptr<Cite<Backend>>> cites_;
     NameValuePairs invariants_;

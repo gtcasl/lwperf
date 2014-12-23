@@ -1,5 +1,7 @@
 #pragma once
 
+#include "lwperf_config.h"
+
 /*
  * NOTE: This header contains implementation details and are subject to change.
  * Use the public API.
@@ -12,11 +14,12 @@ extern "C" {
 #define LWPERF_PRIMITIVE_CAT(x, y) x ## y
 #define LWPERF_CAT(x,y) LWPERF_PRIMITIVE_CAT(x,y)
 
-// TODO: EIGER_MODEL
 #if defined(_USE_EIGER)
 #define LWPERF_IMPL_BASE eiger
 #elif defined(_USE_CSV)
 #define LWPERF_IMPL_BASE csv
+#elif defined(_USE_EIGER_MODEL)
+#define LWPERF_IMPL_BASE model
 #else
 #define LWPERF_IMPL_BASE null
 #endif
@@ -68,6 +71,18 @@ void lwperf_add_cite_param_csv(lwperf_csv* perf, const char* cite_name,
                                  const char* param_name, double value);
 void lwperf_log_csv(lwperf_csv* perf, const char* cite_name);
 void lwperf_stop_csv(lwperf_csv* perf, const char* cite_name);
+
+/* model backend */
+typedef struct lwperf_model lwperf_model;
+lwperf_model* lwperf_init_model(const char* machine, const char* application,
+                                const char* dbname, const char* prefix,
+                                const char* suffix);
+void lwperf_finalize_model(lwperf_model* perf);
+void lwperf_add_invariant_model(lwperf_model* perf, const char* name, double value);
+void lwperf_add_cite_param_model(lwperf_model* perf, const char* cite_name,
+                                 const char* param_name, double value);
+void lwperf_log_model(lwperf_model* perf, const char* cite_name);
+void lwperf_stop_model(lwperf_model* perf, const char* cite_name);
 
 /* Helper macros */
 #define LWPERF_NARGS_SEQ(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, \

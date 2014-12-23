@@ -1,0 +1,8 @@
+#pragma once
+
+/*
+ * When LWPERF_HAVE_EIGER or LWPERF_HAVE_PAPI are defined, we have the
+ * Eiger or PAPI functionality included in our library
+ */
+@HAVE_EIGER@
+@HAVE_PAPI@

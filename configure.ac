@@ -11,37 +11,40 @@ LT_INIT
 # c++11
 AX_CXX_COMPILE_STDCXX_11
 
-# eiger
-AC_ARG_WITH([eiger-include-path],
-			[AS_HELP_STRING([--with-eiger-include-path],
-							[location of the eiger headers, defaults to /usr/include])],
-			[EIGER_CFLAGS="-I$withval"],
-			[EIGER_CFLAGS='-I/usr/include'])
-AC_SUBST([EIGER_CFLAGS])
+AC_ARG_ENABLE([papi],
+              AS_HELP_STRING([--enable-papi], [Enable PAPI counter measurement]))
 
-AC_ARG_WITH([eiger-lib-path],
-			[AS_HELP_STRING([--with-eiger-lib-path],
-							[location of the eiger library])],
-			[EIGER_LIBS="-L$withval -leiger"],
-			[EIGER_LIBS='-leiger'])
-AC_SUBST([EIGER_LIBS])
+AS_IF([test "x$enable_papi" = "xyes"], [
+AC_SEARCH_LIBS([PAPI_library_init], [papi], [], [AC_MSG_ERROR([papi is not installed])])
+HAVE_PAPI_STRING="#define LWPERF_HAVE_PAPI"
+AC_CHECK_HEADERS([papi.h])        # HAVE_PAPI_H
+], [
+HAVE_PAPI_STRING="#undef LWPERF_HAVE_PAPI"
+])
+AC_SUBST(HAVE_PAPI, $HAVE_PAPI_STRING)
+AM_CONDITIONAL([ENABLE_PAPI], [test "x$enable_papi" = "xyes"])
 
-# papi
-AC_ARG_WITH([papi-include-path],
-			[AS_HELP_STRING([--with-papi-include-path],
-							[location of the papi headers, defaults to /usr/include])],
-			[PAPI_CFLAGS="-I$withval"],
-			[PAPI_CFLAGS='-I/usr/include'])
-AC_SUBST([PAPI_CFLAGS])
+AC_ARG_ENABLE([eiger],
+              AS_HELP_STRING([--enable-eiger], [Enable Eiger backend]))
 
-AC_ARG_WITH([papi-lib-path],
-			[AS_HELP_STRING([--with-papi-lib-path],
-							[location of the papi library])],
-			[PAPI_LIBS="-L$withval -lpapi"],
-			[PAPI_LIBS='-lpapi'])
-AC_SUBST([PAPI_LIBS])
+AS_IF([test "x$enable_eiger" = "xyes"], [
+AC_LANG_PUSH([C++])
+SAVED_LDFLAGS=$LDFLAGS
+AC_LINK_IFELSE(
+    [AC_LANG_PROGRAM([#include <eiger/eiger.h>],
+                     [eiger::error_t dummy])],
+    [TEST_LIBS="$TEST_LIBS -leiger"] [HAVE_EIGER=1],
+    [AC_MSG_ERROR([Eiger is not installed.])])
+LDFLAGS=$SAVED_LDFLAGS
+AC_CHECK_HEADERS([eiger/eiger.h]) # HAVE_EIGER_EIGER_H
+HAVE_EIGER_STRING="#define LWPERF_HAVE_EIGER"
+AC_LANG_POP([C++])
+], [
+HAVE_EIGER_STRING="#undef LWPERF_HAVE_EIGER"
+])
+AC_SUBST(HAVE_EIGER, $HAVE_EIGER_STRING)
+AM_CONDITIONAL([ENABLE_EIGER], [test "x$enable_eiger" = "xyes"])
 
-
+AC_CONFIG_FILES([Makefile src/Makefile src/lwperf_config.h])
 AC_CONFIG_HEADERS([config/config.h])
-AC_CONFIG_FILES([Makefile src/Makefile])
 AC_OUTPUT

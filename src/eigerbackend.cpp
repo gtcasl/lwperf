@@ -1,7 +1,7 @@
 #include <sstream>
 #include <map>
 #include <cassert>
-#include <eiger.h>
+#include <eiger/eiger.h>
 
 #include "eigerbackend.h"
 

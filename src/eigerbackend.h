@@ -5,7 +5,7 @@
 #include <vector>
 #include <chrono>
 
-#include <eiger.h>
+#include <eiger/eiger.h>
 
 namespace lwperf {
 
