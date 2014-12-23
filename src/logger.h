@@ -18,7 +18,7 @@ const std::string kEventName = "rapl:::PACKAGE_ENERGY:PACKAGE0";
 }
 
 namespace lwperf {
-
+      
 struct NameValuePairs {
   void addPair(std::string name, double value) {
     names.emplace_back(name);
@@ -29,44 +29,19 @@ struct NameValuePairs {
 };
 
 template<typename Backend>
-class Cite {
+class Site {
  private:
   Backend backend;
   NameValuePairs det_metrics_;
   bool headers_committed;
 
  public:
-  Cite() {}
-  Cite(const char* name) : backend{name}, headers_committed{false} 
+  Site() {}
+  Site(const char* name) : backend{name}, headers_committed{false} 
 #ifdef LWPERF_HAVE_PAPI
       , eventset{PAPI_NULL} 
-  {
-    int retval;
-    if((retval = PAPI_library_init(PAPI_VER_CURRENT)) != PAPI_VER_CURRENT){
-      std::cerr << "Unable to init PAPI library." << std::endl;
-      exit(-1);
-    }
-    int event_code;
-    retval = PAPI_event_name_to_code(const_cast<char*>(kEventName.c_str()),
-                                     &event_code);
-    if(retval != PAPI_OK){
-      PAPI_perror(NULL);
-      exit(-1);
-    }
-    retval = PAPI_create_eventset(&eventset);
-    if(retval != PAPI_OK){
-      PAPI_perror(NULL);
-      exit(-1);
-    }
-    retval = PAPI_add_event(eventset, event_code);
-    if(retval != PAPI_OK){
-      PAPI_perror(NULL);
-      exit(-1);
-    }
-  }
-#else
-  {}
 #endif
+  {}
   void addDetMetric(const std::string& name, double value) {
     /* only add a new pair if the metric doesn't exist. otherwise update
      * the registered value. */
@@ -95,10 +70,44 @@ class Cite {
 };
 
 template <typename Backend>
+Site<Backend>& get_site(const char* site_name,
+                        std::unordered_map<std::string, std::unique_ptr<Site<Backend>>>& sites,
+                        bool do_papi){
+  auto site = sites.find(site_name);
+  if(site == end(sites)){ // Need to make a new Site
+    std::unique_ptr<Site<Backend>> new_site{new Site<Backend>(site_name)};
+    auto insert = sites.emplace(site_name, std::move(new_site));
+    site = insert.first;
+  }
+#ifdef LWPERF_HAVE_PAPI
+  if(do_papi){
+    int event_code;
+    retval = PAPI_event_name_to_code(const_cast<char*>(kEventName.c_str()),
+                                     &event_code);
+    if(retval != PAPI_OK){
+      PAPI_perror(NULL);
+      exit(-1);
+    }
+    retval = PAPI_create_eventset(&site->eventset);
+    if(retval != PAPI_OK){
+      PAPI_perror(NULL);
+      exit(-1);
+    }
+    retval = PAPI_add_event(site->eventset, event_code);
+    if(retval != PAPI_OK){
+      PAPI_perror(NULL);
+      exit(-1);
+    }
+  }
+#endif
+  return *site->second;
+}
+
+template <typename Backend>
 class Logger {
   public:
     Logger(const char* machine, const char* application, const char* dbname,
-           const char* prefix, const char* suffix) {
+           const char* prefix, const char* suffix) : do_measurement_{false}, do_papi_{false} {
       Backend::register_configuration(machine, application, dbname, prefix,
                                       suffix);
     }
@@ -113,54 +122,80 @@ class Logger {
       }
     }
 
-    void add_cite_param(const char* cite_name, const char* param_name,
+    void add_site_param(const char* site_name, const char* param_name,
                         double value) {
-      auto cite = cites_.find(cite_name);
-      if(cite == end(cites_)){ // Need to make a new Cite
-        std::unique_ptr<Cite<Backend>> new_cite{new Cite<Backend>(cite_name)};
-        auto insert = cites_.emplace(cite_name, std::move(new_cite));
-        cite = insert.first;
-      }
-      cite->second->addDetMetric(param_name, value);
+      auto& site = get_site(site_name, sites_, do_papi_);
+      site.addDetMetric(param_name, value);
     }
 
-    void log(const char* cite_name) {
-      auto& cite = *cites_[cite_name].get();
+    void log(const char* site_name) {
+      if(do_measurement_) {
+        auto& site = get_site(site_name, sites_, do_papi_);
 #ifdef LWPERF_HAVE_PAPI
-      int retval = PAPI_start(cite.eventset);
-      if(retval != PAPI_OK){
-        PAPI_perror(NULL);
-        exit(-1);
-      }
+        if(do_papi_){
+          int retval = PAPI_start(site.eventset);
+          if(retval != PAPI_OK){
+            PAPI_perror(NULL);
+            exit(-1);
+          }
+        }
 #endif
-      cite.start_time = std::chrono::high_resolution_clock::now();
+        site.start_time = std::chrono::high_resolution_clock::now();
+      }
     }
 
-    void stop(const char* cite_name) {
-      auto end_time = std::chrono::high_resolution_clock::now();
-      auto& cite = *cites_[cite_name].get();
+    void stop(const char* site_name) {
+      auto& site = get_site(site_name, sites_, do_papi_);
+      std::vector<std::string> result_names;
+      std::vector<double> result_values;
+      if(do_measurement_) {
+        auto end_time = std::chrono::high_resolution_clock::now();
 #ifdef LWPERF_HAVE_PAPI
-      long long elapsed_energy;
-      int retval = PAPI_stop(cite.eventset, &elapsed_energy);
-      if(retval != PAPI_OK){
-        PAPI_perror(NULL);
-        exit(-1);
+        if(do_papi_){
+          long long elapsed_energy;
+          int retval = PAPI_stop(site.eventset, &elapsed_energy);
+          if(retval != PAPI_OK){
+            PAPI_perror(NULL);
+            exit(-1);
+          }
+          result_values.emplace_back(elapsed_energy);
+        }
+#endif
+        auto elapsed_time =
+            std::chrono::duration<double>(end_time - site.start_time).count();
+        result_values.emplace_back(elapsed_time);
+      }
+#ifdef LWPERF_HAVE_PAPI
+      if(do_papi_){
+        result_names.emplace_back(kEventName);
       }
 #endif
-      auto elapsed_time =
-          std::chrono::duration<double>(end_time - cite.start_time).count();
-      std::vector<std::string> result_names = {"time"};
-      std::vector<double> result_values = {elapsed_time};
+      result_names.emplace_back("time");
+      site.commit(invariants_.names, invariants_.values, result_names, result_values);
+    }
+
+    void init_papi() {
 #ifdef LWPERF_HAVE_PAPI
-      result_names.emplace_back(kEventName);
-      result_values.emplace_back(elapsed_energy);
+      if(!do_papi_){
+        int retval;
+        if((retval = PAPI_library_init(PAPI_VER_CURRENT)) != PAPI_VER_CURRENT){
+          std::cerr << "Unable to init PAPI library." << std::endl;
+          exit(-1);
+        }
+      }
+      do_papi_ = true;
 #endif
-      cite.commit(invariants_.names, invariants_.values, result_names, result_values);
+    }
+
+    void enable_measurement() {
+      do_measurement_ = true;
     }
 
   private:
-    std::unordered_map<std::string, std::unique_ptr<Cite<Backend>>> cites_;
+    std::unordered_map<std::string, std::unique_ptr<Site<Backend>>> sites_;
     NameValuePairs invariants_;
+    bool do_measurement_;
+    bool do_papi_;
 };
 
 } // end namespace lwperf

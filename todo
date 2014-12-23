@@ -1,17 +1,12 @@
-* modelcaller.h impl
-    should be just the same as in perf.h:
-    map<string, double> params; // fill in with each param--value pair for this site
-    SSTMAC_compute_eiger(params, citename + ".model");
-* Add documentation about naming convention/requirements
-
-* add mixin handling for clocking/papi (ie we can decide whether or not to use it)
-    addResultProvider?
-
-add function to api to turn on PAPI (ie lwperf_use_papi(lwperf_t perf) or something)
-    LWPERF_USE_PAPI, LWPERF_USE_EIGER
-
 * remove underscore from beginning of config macro names
     add LWPERF prefix, for namespacing?
+
+
+
+
+
+
+* Add documentation about naming convention/requirements
 * fortran api on top of c api
 * c++ api on top of c api
 template<typename T, typename... Targs>

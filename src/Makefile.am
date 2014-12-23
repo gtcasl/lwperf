@@ -5,3 +5,6 @@ liblwperf_la_SOURCES = csvbackend.cpp lwperf_impl.cpp
 if ENABLE_EIGER
 liblwperf_la_SOURCES += eigerbackend.cpp
 endif
+if ENABLE_SSTMAC
+liblwperf_la_SOURCES += sstmacbackend.cpp
+endif

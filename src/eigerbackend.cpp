@@ -24,8 +24,8 @@ void EigerBackend::register_configuration(const char* machine,
   app_name_ = application;
 }
 
-EigerBackend::EigerBackend(const char* cite_name) {
-  eiger::DataCollection dc(cite_name, cite_name);
+EigerBackend::EigerBackend(const char* site_name) {
+  eiger::DataCollection dc(site_name, site_name);
   dc.commit();
   dc_id_ = dc.getID();
 }

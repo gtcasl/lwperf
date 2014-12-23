@@ -12,7 +12,7 @@ class CSVBackend{
     std::unique_ptr<std::ofstream> output_file_;
 
   public:
-    CSVBackend(const char* cite_name);
+    CSVBackend(const char* site_name);
     static void register_configuration(const char* machine, const char* application,
                                        const char* dbname, const char* prefix,
                                        const char* suffix) {}

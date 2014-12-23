@@ -34,9 +34,9 @@ void print_comma_separated(std::ofstream& out, const std::vector<T>& first,
   out << "\n";
 }
 
-CSVBackend::CSVBackend(const char* cite_name) : output_file_{new std::ofstream} {
+CSVBackend::CSVBackend(const char* site_name) : output_file_{new std::ofstream} {
   std::stringstream file_ss;
-  file_ss << cite_name << ".csv";
+  file_ss << site_name << ".csv";
   output_file_->open(file_ss.str());
 }
 
