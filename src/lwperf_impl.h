@@ -7,6 +7,12 @@
  * Use the public API.
  */
 
+#if __GNU_C__ >= 4
+#define LWPERF_EXPORT __attribute__ ((visibility ("default")))
+#else
+#define LWPERF_EXPORT
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -15,10 +21,16 @@ extern "C" {
 #define LWPERF_CAT(x,y) LWPERF_PRIMITIVE_CAT(x,y)
 
 #if defined(LWPERF_USE_EIGER)
+#ifndef LWPERF_HAVE_EIGER
+#error "Eiger support was not compiled into this library"
+#endif
 #define LWPERF_IMPL_BASE eiger
 #elif defined(LWPERF_USE_CSV)
 #define LWPERF_IMPL_BASE csv
 #elif defined(LWPERF_USE_SSTMAC)
+#ifndef LWPERF_HAVE_SSTMAC
+#error "SST/macro support was not compiled into this library"
+#endif
 #define LWPERF_IMPL_BASE sstmac
 #else
 #define LWPERF_IMPL_BASE null

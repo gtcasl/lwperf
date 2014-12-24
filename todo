@@ -1,5 +1,8 @@
 * Add documentation about naming convention/requirements
     and general documentation improvements
+
+* maybe a pkg-config thing
+* better way to notify that papi was not installed if someone tries to use it
 * fortran api on top of c api
 * c++ api on top of c api
 template<typename T, typename... Targs>

@@ -6,28 +6,35 @@
 extern "C" {
 #endif
 
-typedef struct LWPERF_IMPL* lwperf_t;
+LWPERF_EXPORT typedef struct LWPERF_IMPL* lwperf_t;
 
+LWPERF_EXPORT
 inline lwperf_t lwperf_init(const char* machine, const char* application,
                             const char* dbname, const char* prefix,
                             const char* suffix) {
   return lwperf_init_impl(machine, application, dbname, prefix, suffix);
 }
+LWPERF_EXPORT
 inline void lwperf_finalize(lwperf_t perf) { lwperf_finalize_impl(perf); }
+LWPERF_EXPORT
 inline void lwperf_add_invariant(lwperf_t perf, const char* name,
                                  double value) {
   lwperf_add_invariant_impl(perf, name, value);
 }
+LWPERF_EXPORT
 inline void lwperf_add_site_param(lwperf_t perf, const char* site_name,
                                   const char* param_name, double value) {
   lwperf_add_site_param_impl(perf, site_name, param_name, value);
 }
+LWPERF_EXPORT
 inline void lwperf_log(lwperf_t perf, const char* site_name) {
   lwperf_log_impl(perf, site_name);
 }
+LWPERF_EXPORT
 inline void lwperf_stop(lwperf_t perf, const char* site_name) {
   lwperf_stop_impl(perf, site_name);
 }
+LWPERF_EXPORT
 inline void lwperf_init_papi(lwperf_t perf) {
   lwperf_init_papi_impl(perf);
 }

@@ -18,17 +18,17 @@ int main() {
     cout << "Adding second invariant\n";
     lwperf_add_invariant(perf, "invariant2", 456);
 
-    cout << "Adding first cite param\n";
-    lwperf_add_cite_param(perf, "cite1", "param1", 111);
-    cout << "Adding second and third cite param\n";
-    lwperf_add_cite_params(perf, "cite1", "param2", i, "param3", i*i);
+    cout << "Adding first site param\n";
+    lwperf_add_site_param(perf, "site1", "param1", 111);
+    cout << "Adding second and third site param\n";
+    lwperf_add_site_params(perf, "site1", "param2", i, "param3", i*i);
 
     cout << "Begin log\n";
-    lwperf_log(perf, "cite1");
+    lwperf_log(perf, "site1");
     cout << "...sleeping\n";
     usleep(500000);
     cout << "End log\n";
-    lwperf_stop(perf, "cite1");
+    lwperf_stop(perf, "site1");
   }
 
   cout << "Finalizing\n";
