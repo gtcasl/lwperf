@@ -3,70 +3,37 @@ Authors:
     Benjamin Allan, Sandia National Labs
 Date: 12/2014
 
-* Examples:
-The examples directory contains simple C, C++, and Fortran apps that demonstrate
-the usage of Lwperf, which may require configuration to your particular
-execution environment.
+The Lightweight Performance Instrumentation Library (lwperf) is a tool to add
+instrumentation to your applications. Simple API calls allow for adding metrics
+of interest, starting, and stopping instrumentation. lwperf supports exporting
+the data to CSV, Eiger, and SST/macro, and can be used to collect both
+execution time and hardware performance counters using PAPI.
 
 * Documentation:
-This code is documented in lwperf.pdf (lwperf.tex); make tex to regenerate.
-
-The basic idea is that (for c++,c,fortran) the intrusion in user MPI-based code should be
-minimal (one-liners) once support initialization is done. E.g.
-
-	PERFLOG(someSiteName,ID(someIntInput),DN(someDoubleInput));
-	// work sections
-	...
-	PERFSTOP(someSiteName,ID(someIntInputValue),DN(someDoubleInputValue));
-
-This syntax can be preprocessed into an efficient instrumentation scheme without
-requiring a full parse of the complete source by a tool such as ROSE/Tau.
-
-The PERFLOG call defines the database metric names and the PERFSTOP records 
-values for them. The PERFLOG and PERFSTOP arguments must be consistent.
-Across the application, the values of someSiteName must be distinct.
-
+This code is documented in the doc subdirectory. Run 'make' to regenerate
+(requires pdflatex).
 
 * Build:
-The Makefile provides simple examples of each; 'make all' will build and run them.
-The examples include c, c++, fortran, eiger, non-eiger, and screen output configurations.
-Makefile.mpieiger may need to be edited to set proper local mpieiger library and
-include path definitions.
+To build using the defaults, run
+    ./configure
+    make
+Support for PAPI, Eiger, and SST/macro need to be enabled explicitly during
+configuration with --enable-papi, --enable-eiger, and --enable-sstmac
+respectively.
 
 * Install:
-This is a source package; there is no installed library.
-
+After building, run 'make install'.
 
 * Requirements:
-See lwperf.pdf. lwperf supports eiger but can also be used without eiger at all.
-Thus, lwperf provides its own test rule (make all) and PDF documentation,
-lwperf.pdf.
-
-* Run:
-The examples using eiger will need a localhost mysql database initialized
-before they can be executed. Script ./resetdb may be modified for this purpose.
-
+See lwperf.pdf. Support for PAPI, Eiger, and SST/macro require each to be
+installed, but are not mandatory.
 
 * Parallelism:
-The code can be mpi parallel and logging is done independently from each process.
-Extension to complete OMP thread-safety has not been verified (seems unlikely).
-
-
-* Extensibility:
-The code is based on shell and make scripts which can/should be lightly tailored
-to specific applications.
-
-
-* Portability:
-The drivers and eperf.cpp contain site specific mysql arguments that need to be modified for use
-elsewhere.
-
-* OS-specific:
-At least under Ubuntu 11.10, the system-provided libmysqlpp.so is defective and specifying libmysqlpp.a is necessary. Building with intel compilers requires mpi and mysqlpp libraries built
-with the intel c++ compiler.
+The library is thread safe assuming no lwperf_t pointers are shared between
+threads.
 
 * Papi: Hardware Performance Counters:
 This build supports the collection of PAPI hardware performance counters during
 execution in addition to excution time. This allows for the creation of other
-performance metrics, such as power or energy. The preprocessor flag USE_PAPI
-must be defined before lwperf is included to make sure it works.
+performance metrics, such as power or energy. Support must be explicitly
+configured and PAPI must be explicitly initialized during runtime.
