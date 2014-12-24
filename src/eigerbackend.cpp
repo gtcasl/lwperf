@@ -9,11 +9,7 @@ namespace lwperf {
 
 void EigerBackend::register_configuration(const char* machine,
                                           const char* application,
-                                          const char* dbname,
-                                          const char* prefix,
-                                          const char* suffix) {
-  (void)prefix;
-  (void)suffix;
+                                          const char* dbname) {
   eiger::Connect(dbname);
   eiger::Machine e_machine(machine, machine);
   e_machine.commit();

@@ -10,9 +10,8 @@ LWPERF_EXPORT typedef struct LWPERF_IMPL* lwperf_t;
 
 LWPERF_EXPORT
 inline lwperf_t lwperf_init(const char* machine, const char* application,
-                            const char* dbname, const char* prefix,
-                            const char* suffix) {
-  return lwperf_init_impl(machine, application, dbname, prefix, suffix);
+                            const char* dbname) {
+  return lwperf_init_impl(machine, application, dbname);
 }
 LWPERF_EXPORT
 inline void lwperf_finalize(lwperf_t perf) { lwperf_finalize_impl(perf); }

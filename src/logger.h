@@ -106,10 +106,9 @@ Site<Backend>& get_site(const char* site_name,
 template <typename Backend>
 class Logger {
   public:
-    Logger(const char* machine, const char* application, const char* dbname,
-           const char* prefix, const char* suffix) : do_measurement_{false}, do_papi_{false} {
-      Backend::register_configuration(machine, application, dbname, prefix,
-                                      suffix);
+    Logger(const char* machine, const char* application, const char* dbname) 
+        : do_measurement_{false}, do_papi_{false} {
+      Backend::register_configuration(machine, application, dbname);
     }
 
     void add_invariant(const char* name, double value) {

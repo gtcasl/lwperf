@@ -14,8 +14,7 @@ class EigerBackend{
     EigerBackend(const char* site_name);
     ~EigerBackend();
     static void register_configuration(const char* machine, const char* application,
-                                       const char* dbname, const char* prefix,
-                                       const char* suffix);
+                                       const char* dbname);
     void commit_headers(const std::vector<std::string>& invariant_names,
                         const std::vector<std::string>& parameter_names,
                         const std::vector<std::string>& result_names);

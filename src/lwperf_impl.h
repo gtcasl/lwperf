@@ -52,8 +52,7 @@ typedef struct LWPERF_IMPL* lwperf_t;
 /* null backend */
 typedef struct lwperf_null lwperf_null;
 lwperf_null* lwperf_init_null(const char* machine, const char* application,
-                          const char* dbname, const char* prefix,
-                          const char* suffix);
+                          const char* dbname);
 void lwperf_finalize_null(lwperf_null* perf);
 void lwperf_add_invariant_null(lwperf_null* perf, const char* name, double value);
 void lwperf_add_site_param_null(lwperf_null* perf, const char* site_name,
@@ -65,8 +64,7 @@ void lwperf_init_papi_null(lwperf_null* perf);
 /* eiger backend */
 typedef struct lwperf_eiger lwperf_eiger;
 lwperf_eiger* lwperf_init_eiger(const char* machine, const char* application,
-                           const char* dbname, const char* prefix,
-                           const char* suffix);
+                           const char* dbname);
 void lwperf_finalize_eiger(lwperf_eiger* perf);
 void lwperf_add_invariant_eiger(lwperf_eiger* perf, const char* name, double value);
 void lwperf_add_site_param_eiger(lwperf_eiger* perf, const char* site_name,
@@ -78,8 +76,7 @@ void lwperf_init_papi_eiger(lwperf_eiger* perf);
 /* csv backend */
 typedef struct lwperf_csv lwperf_csv;
 lwperf_csv* lwperf_init_csv(const char* machine, const char* application,
-                           const char* dbname, const char* prefix,
-                           const char* suffix);
+                           const char* dbname);
 void lwperf_finalize_csv(lwperf_csv* perf);
 void lwperf_add_invariant_csv(lwperf_csv* perf, const char* name, double value);
 void lwperf_add_site_param_csv(lwperf_csv* perf, const char* site_name,
@@ -91,8 +88,7 @@ void lwperf_init_papi_csv(lwperf_csv* perf);
 /* sstmac backend */
 typedef struct lwperf_sstmac lwperf_sstmac;
 lwperf_sstmac* lwperf_init_sstmac(const char* machine, const char* application,
-                                const char* dbname, const char* prefix,
-                                const char* suffix);
+                                const char* dbname);
 void lwperf_finalize_sstmac(lwperf_sstmac* perf);
 void lwperf_add_invariant_sstmac(lwperf_sstmac* perf, const char* name, double value);
 void lwperf_add_site_param_sstmac(lwperf_sstmac* perf, const char* site_name,

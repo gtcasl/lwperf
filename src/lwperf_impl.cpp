@@ -30,13 +30,10 @@ extern "C" {
 
 /* null API */
 lwperf_null* lwperf_init_null(const char* machine, const char* application,
-                          const char* dbname, const char* prefix,
-                          const char* suffix) {
+                          const char* dbname) {
   (void)machine;
   (void)application;
   (void)dbname;
-  (void)prefix;
-  (void)suffix;
   return nullptr;
 }
 
@@ -75,9 +72,8 @@ void lwperf_init_papi_null(lwperf_null* perf) {
 #ifdef LWPERF_HAVE_EIGER
 /* eiger backend */
 lwperf_eiger* lwperf_init_eiger(const char* machine, const char* application,
-                           const char* dbname, const char* prefix,
-                           const char* suffix) {
-  auto perf = new lwperf_eiger(machine, application, dbname, prefix, suffix);
+                           const char* dbname) {
+  auto perf = new lwperf_eiger(machine, application, dbname);
   perf->enable_measurement();
   return perf;
 }
@@ -110,9 +106,8 @@ void lwperf_init_papi_eiger(lwperf_eiger* perf) {
 
 /* csv backend */
 lwperf_csv* lwperf_init_csv(const char* machine, const char* application,
-                           const char* dbname, const char* prefix,
-                           const char* suffix) {
-  auto perf =  new lwperf_csv(machine, application, dbname, prefix, suffix);
+                           const char* dbname) {
+  auto perf =  new lwperf_csv(machine, application, dbname);
   perf->enable_measurement();
   return perf;
 }
@@ -145,9 +140,8 @@ void lwperf_init_papi_csv(lwperf_csv* perf) {
 #ifdef LWPERF_HAVE_SSTMAC
 /* sstmac backend */
 lwperf_sstmac* lwperf_init_sstmac(const char* machine, const char* application,
-                                const char* dbname, const char* prefix,
-                                const char* suffix) {
-  return new lwperf_sstmac(machine, application, dbname, prefix, suffix);
+                                const char* dbname) {
+  return new lwperf_sstmac(machine, application, dbname);
 }
 
 void lwperf_finalize_sstmac(lwperf_sstmac* perf) {
