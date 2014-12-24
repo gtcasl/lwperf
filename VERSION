@@ -1,3 +1,10 @@
-VERSION=2.0
-This is version 2.0. It supports eiger and csv outputs.
-Version 1.0 supports csv output only.
+Version 2.0
+-----------
+Complete rewrite. This backwards incompatible due to the following changes:
+    * Move from source-only distribution to library-based API.
+    * API is c-based to simplify wrappers to other languages.
+    * Namespaced macros and functions to prevent clashes and undefined behavior.
+
+Version 1.0
+-----------
+Source-only distribution. Supports C, C++, and FORTRAN. Exports to CSV and Eiger.
