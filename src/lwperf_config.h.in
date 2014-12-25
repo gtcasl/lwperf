@@ -1,8 +1,9 @@
 #pragma once
 
 /*
- * When LWPERF_HAVE_EIGER or LWPERF_HAVE_PAPI are defined, we have the
- * Eiger or PAPI functionality included in our library
+ * When LWPERF_HAVE_X s defined, we have the functionality of X included in our 
+ * library.
  */
 @HAVE_EIGER@
 @HAVE_PAPI@
+@HAVE_SSTMAC@
