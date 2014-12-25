@@ -82,18 +82,18 @@ Site<Backend>& get_site(const char* site_name,
 #ifdef LWPERF_HAVE_PAPI
   if(do_papi){
     int event_code;
-    retval = PAPI_event_name_to_code(const_cast<char*>(kEventName.c_str()),
+    auto retval = PAPI_event_name_to_code(const_cast<char*>(kEventName.c_str()),
                                      &event_code);
     if(retval != PAPI_OK){
       PAPI_perror(NULL);
       exit(-1);
     }
-    retval = PAPI_create_eventset(&site->eventset);
+    retval = PAPI_create_eventset(&site->second->eventset);
     if(retval != PAPI_OK){
       PAPI_perror(NULL);
       exit(-1);
     }
-    retval = PAPI_add_event(site->eventset, event_code);
+    retval = PAPI_add_event(site->second->eventset, event_code);
     if(retval != PAPI_OK){
       PAPI_perror(NULL);
       exit(-1);
