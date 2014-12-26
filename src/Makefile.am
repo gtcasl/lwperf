@@ -9,3 +9,4 @@ liblwperf_la_SOURCES += sstmacbackend.cpp
 endif
 
 liblwperf_la_CXXFLAGS = -fvisibility=hidden -fvisibility-inlines-hidden
+liblwperf_la_LDFLAGS = $(SSTMAC_LIBS)
