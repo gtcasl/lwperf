@@ -1,6 +1,7 @@
 #include <sstream>
+#include <map>
 #include <vector>
-#include <sstmac/software/api/eiger/SSTMAC_compute_eiger.h>
+#include <sstmac/software/api/eiger/sstmac_compute_eiger.h>
 
 #include "sstmacbackend.h"
 
