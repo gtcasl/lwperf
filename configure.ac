@@ -52,6 +52,7 @@ AC_ARG_ENABLE([sstmac],
               AS_HELP_STRING([--enable-sstmac], [Enable SST/macro model call interface]))
 
 AS_IF([test "x$enable_sstmac" = "xyes"], [
+AC_PATH_LIB_LIBCONFIG
 AC_PATH_LIB([sstmac],[],[],[],[], [],[AC_MSG_ERROR([SST/macro is not installed])])
 HAVE_SSTMAC_STRING="#define LWPERF_HAVE_SSTMAC"
 AC_CHECK_HEADERS([sstmac/software/api/eiger/sstmac_compute_eiger.h])        # HAVE_SSTMAC_SOFTWARE_API_EIGER_SSTMAC_COMPUTE_EIGER_H
