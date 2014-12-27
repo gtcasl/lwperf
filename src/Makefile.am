@@ -8,5 +8,5 @@ if ENABLE_SSTMAC
 liblwperf_la_SOURCES += sstmacbackend.cpp
 endif
 
-liblwperf_la_CXXFLAGS = -fvisibility=hidden -fvisibility-inlines-hidden
-liblwperf_la_LDFLAGS = $(SSTMAC_LIBS)
+#liblwperf_la_CXXFLAGS = -fvisibility=hidden
+liblwperf_la_LDFLAGS = $(SSTMAC_LIBS) -export-symbols-regex '^lwperf_'

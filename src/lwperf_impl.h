@@ -7,12 +7,6 @@
  * Use the public API.
  */
 
-#if __GNU_C__ >= 4
-#define LWPERF_EXPORT __attribute__ ((visibility ("default")))
-#else
-#define LWPERF_EXPORT
-#endif
-
 #ifdef __cplusplus
 extern "C" {
 #endif
