@@ -1,4 +1,4 @@
-INC=-I/home/eric/.local/include/lwperf -g
+INC=-I/home/eric/.local/include/lwperf -I/home/eric/.local/include -g
 LIB=-L/home/eric/.local/lib -llwperf -leiger -lsqlite3
 
 all: null eiger csv sstmac

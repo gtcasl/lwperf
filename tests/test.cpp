@@ -8,7 +8,8 @@ using namespace std;
 int main() {
   
   cout << "Initializing lwperf\n";
-  lwperf_t perf = lwperf_init("harrenhal", "test", "database", "", "");
+  lwperf_t perf = lwperf_init("harrenhal", "test", "database");
+  lwperf_init_papi(perf);
 
   cout << "Adding first invariant\n";
   lwperf_add_invariant(perf, "invariant1", 123);
