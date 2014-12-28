@@ -3,6 +3,7 @@
 \usepackage{array}
 \usepackage[T1]{fontenc}
 \lstset{breaklines=true}
+\usepackage{enumitem}
 
 \title{\textbf{Lightweight Performance Instrumentation (lwperf)}}
 \author{Eric Anger - \texttt{eanger@gatech.edu}}
@@ -26,51 +27,58 @@ Free MPI-oriented profiling tools already exist, but they usually stop at profil
 
 \section{Implementation}
 \label{sec:impl}
-TODO: talk about how lwperf is a C library with simple functions based around the lwperf\_t* pointer.
+The lwperf library is written in C++, but only exposes a simple C API. All functionality is implemented internally, with the details hidden from the end user.
+
+ The library also provides optional support for PAPI, Eiger, and SST/macro. These features are conditionally compiled into the library and a macro describes if these features are included.
 
 \subsection{Dependencies}
-\begin{itemize}
-\item[C] Variadic macro support.
-\item[Eiger] The collectors depend on libmpieiger or libmpifakeeiger if -D\_USE\_EIGER is applied. Eiger is not needed if only CSV collection is used.
-\item[PAPI] \textit{OPTIONAL} The PAPI interface is used to collect hardware performance counters. This is disabled by default.
-\end{itemize}
+\begin{description}
+\item[C++] The library is written in C++. The implementation requires features from C++11 (i.e. auto variables, range-based for loops, \texttt{std::chrono} timing functions); however, since none of these features are externally visible, the correct runtime library can be statically linked and hidden from the end user.
+\item [C] A C99 compiler is all that is required to use the library interface. 
+\item[PAPI \textit{optional}] PAPI version 5.3 or newer is required to tally hardware performance counters. Configure with --enable-papi to turn on.
+\item[Eiger \textit{optional}] Eiger version 3.0 or newer is required to dump data to the Eiger database. Configure with --enable-eiger to turn on.
+\item[SST/macro \textit{optional}] SST/macro version 2.4 or newer is required to make calls to Eiger models.
+\end{description}
 
 \section{Application Programming Interface}
 This section documents the API for interacting with the lwperf library.
 
 \subsection{Setup}
-For C++, the profiled code must include a single header, lwperf.h, which pulls in definitions for the data collection macros based on the compiler flags: -D\_USE\_EIGER and -D\_USE\_CSV. If neither flag is provided, a set of null macros make all the collector-related code disappear from the build.
-After lwperf.h is included in the driver and all files where collection is needed are listed in the updateLoggersCXX.sh script, the driver has a simple init/configure/run/finalize use sequence. 
+The library API is specified by a single header, \texttt{lwperf.h}. This header pulls in implementation details depending on which output format to use. Several preprocessor flags describe where the logging information should be output. If no flags are selected, no logging will be performed.
+
+\begin{description}
+    \item[\texttt{LWPERF\_USE\_CSV}] Output to CSV files, one per site.
+    \item[\texttt{LWPERF\_USE\_EIGER}] Output to Eiger database, if supported.
+    \item[\texttt{LWPERF\_USE\_SSTMAC}] Evaluate the models and increment SST/macro simulated time, if supported
+\end{description}
+
+The library is initialized with a call to \texttt{lwperf\_init}, which takes the name of the machine, application, and database (i.e. output location) as parameters. This returns a \texttt{lwperf\_t} object containing all state for that lwperf instance. After execution, call \texttt{lwperf\_finalize} to clean up the \texttt{lwperf\_t} object.
+
+Any invariants about execution, implying no variation during the course of application execution, can be documented with the \texttt{lwperf\_add\_invariant} function. This takes the name and value for the metric to be recorded.
 
 \subsection{Profile sites}
-At any site (usually a loop nest) where data collection is wanted, the collection point is defined at the beginning of the site with a unique name and additional log names for parameters characterizing the work load (usually integer). The values of the parameters do not need to be available at the beginning of the site; only names are needed. The name given the site must be unique across the entire application. The parameter names are specific to the site and may be reused elsewhere.
+At any site (usually a loop nest) where data collection is wanted, the collection point is defined at the beginning of the site with a unique name. The profile site starts with a call to \texttt{lwperf\_log} and ends with a call to \texttt{lwperf\_stop}. Execution time (and optionally PAPI counters, if supported) are recorded for each \texttt{log}/\texttt{stop} pair. Parameters that are of interest for this region can be added with the \texttt{lwperf\_add\_site\_param} function. Each parameter has a name and an associated value. This are recorded for each \texttt{log}/\texttt{stop} pair.
 
-From a molecular dynamics example, with a variable work load where nlocal is known at the beginning but nneigh is dependent on double-precision input data arrays:
+A helper macro, \texttt{lwperf\_add\_site\_params}, is included to help ease adding multiple metrics to a profile site. Any number of name/value metrics can be added in a single call.
+
+The following is an example from a molecular dynamics code:
 \begin{verbatim}
-  PERFDECL(int nneigh=0;); // counter used only when profiling
-  // site Tenergy, log parameter names nlocal, nneigh
-  PERFLOG(Tenergy, ID(nlocal),ID(nneigh)); 
+  lwperf_t perf = lwperf_init("testbed", "md-app", "output_db");
+  lwperf_add_site_param(perf, "Tenergy", "nlocal", nlocal);
+  lwperf_add_site_param(perf, "Tenergy", "nneigh", nneigh);
+
+  // site Tenergy
+  lwperf_log(perf, "Tenergy");
   for (int i = 0; i < nlocal; i++) { // outer loop
-    ... // fixed work calculating, in part, data_dependent_condition
-    if ( data_dependent_condition) {
-      for (int j=0; j< numneigh; j++) {
-        PERFDECL(nneigh+=numneigh;); // assignment needed only for profiling
-        ... // conditional work
-      }
+    for (int j=0; j< numneigh; j++) {
+        ... // computational work
     }
   }
-  PERFSTOP(Tenergy, ID(atom.nlocal),ID(nneigh));
+  lwperf_stop(perf, "Tenergy");
 \end{verbatim}
 
-At the end of the site, PERFSTOP computes the elapsed performance measures (at minimum, wallclock) and these values are logged along with the values passed to the slots defined in the matching PERFLOG statement. In this case the value of nlocal comes from data named atom.nlocal. The data-dependent nneigh parameter is declared and updated only when lwperf is enabled (through use of PERFDECL).
-
-Analogous to PERFLOG/PERFSTOP are the macros PERFLOGKEEP/PERFSTOPKEEP. They function the same way as PERFLOG/PERFSTOP except with regards to skeletonization; use they macros whenever the metrics being instrumented are data-dependent, in the sense that they only have valid values as long as the actual computation is performed. When the -D\_USE\_EIGER\_MODEL flag is set, the sections of code in between calls to PERFLOGKEEP and PERFSTOPKEEP will \textit{not} be removed.
-
 \subsection{Hardware Performance Counters}
-Hardware performance counters may be collected in addition to the system clock time and used as nondeterministic metrics. lwperf uses the PAPI interface for collecting hardware performance counters, support for which is turned off by default. To use, make sure that \texttt{USE\_PAPI} is defined in the preprocessor, either setting the preprocessor flag \texttt{-DUSE\_PAPI} during compilation or by placing \texttt{#define USE\_PAPI} before including the \texttt{lwperf.h} header.
-
-\section{Building}
-Being lightweight by design, this tool is intended to be used by incorporation into the investigated application and its build processes rather than as an independent library.  In order to keep performance impact to minimum without introducing a proprietary compiler, some simple portions of the support classes must be generated based on a scan of the sites defined in the application code. This scan is performed and the generated code is updated by the simple utility {\em updateLoggersCXX.sh}. This utility takes the file names to parse as parameters.
+Hardware performance counters may be collected in addition to the system clock time and used as nondeterministic metrics. lwperf uses the PAPI interface for collecting hardware performance counters, support for which is disabled by default. Configure with the --enable-papi flag to compile the library with PAPI support. The \texttt{lwperf\_init\_papi} function is used to turn on PAPI support during execution.
 
 \section{Running}
 \label{sec:running}
@@ -79,13 +87,11 @@ The timing data obtainable should be reasonably accurate for measured non-overla
 \section{Analysis}
 Lwperf makes collecting large amounts of performance data easy. Analysis of the data is beyond the scope of this document. Studying the impact of application parameters and compiler options on the runtime performance of specific code segments (loop nests) requires careful construction of a set of benchmark runs spanning some relevant parameter space. The generated CSV files can be easily aggregated and then imported or translated for use in any preferred tool (a spreadsheet, gnuplot, etc).
 
-Early use of the tool has provided one general insight. When examining the wall-clock and processor-clock time reported for a profiling site, the two measurements may differ widely due to process interruptions. The most common interruptions will be reported in the other rusage fields recorded, though these fields normally report 0 for number-crunching loops. Consult the system documentation of getrusage for explanation of the reported fields.
-
-The default data collected includes the wall-clock time. This enables production of timelines which capture what code section was active when, not just how much time was spent in each call.
+The default data collected includes the wall-clock time. This enables production of time-lines which capture what code section was active when, not just how much time was spent in each call.
 
 \section{Skeletonization}
-Lwperf can be used in conjunction with the SST/macro simulator to facilitate the creation of application "skeletons", versions of the application fit for accelerated simulation by removing all time-intensive memory acquisition and computation. Each profiling site can be viewed as a way to replace the execution of that code with an equivalent Eiger model. Setting the compiler flag -D\_USE\_EIGER\_MODEL will remove all the code in between calls to PERFLOG and PERFSTOP, replacing them with appropriate calls to the Eiger models that would be created by running this code. Currently only C++ applications are supported. While this may not handle the entirety of the skeletonizing effort, it allows for seamless integration of Eiger models and skeleton construction. 
+lwperf can be used in conjunction with the SST/macro simulator to facilitate the creation of application "skeletons", versions of the application fit for accelerated simulation by removing all time-intensive memory acquisition and computation. Each profiling site can be viewed as a way to replace the execution of that code with an equivalent Eiger model. Setting the compiler flag \texttt{LWPERF\_USE\_SSTMAC} will cause the \texttt{lwperf\_stop} function make an appropriate call to the Eiger model that would be created by running this code. Currently only C++ applications are supported. While this may not handle the entirety of the skeletonization effort, it allows for seamless integration of Eiger models and skeleton construction. Removal of the actual computation performed (to speed up simulation execution time) is left to the application writer.
 
-Skeletonization assumes a naming convention for models created with Eiger, \textit{<site name>.model}, where <site name> is the first parameter to the PERFLOG macro.
+Skeletonization assumes a naming convention for models created with Eiger, \textit{<site name>.model}, where <site name> is the second parameter to the \texttt{lwperf\_log} function.
 
 \end{document}

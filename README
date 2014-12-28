@@ -32,7 +32,7 @@ installed, but are not mandatory.
 The library is thread safe assuming no lwperf_t pointers are shared between
 threads.
 
-* Papi: Hardware Performance Counters:
+* PAPI: Hardware Performance Counters:
 This build supports the collection of PAPI hardware performance counters during
 execution in addition to excution time. This allows for the creation of other
 performance metrics, such as power or energy. Support must be explicitly
