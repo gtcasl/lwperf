@@ -1,4 +1,5 @@
-* maybe a pkg-config thing
+* maybe a pkg-config thing: need to handle optional features (papi, eiger, sstmac) and their flags
+    this gets complicated if those libs don't provide pc files
 * better way to notify that papi was not installed if someone tries to use it
 * fortran api on top of c api
 * c++ api on top of c api
