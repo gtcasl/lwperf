@@ -1,7 +1,7 @@
 #include <unistd.h>
 #include <iostream>
 
-#include <lwperf.h>
+#include <lwperf/lwperf.h>
 
 using namespace std;
 

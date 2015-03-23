@@ -69,6 +69,10 @@ void lwperf_init_papi_null(lwperf_null* perf) {
   (void)perf;
 }
 
+void lwperf_init_papi_with_names_null(lwperf_null* /*perf*/, const char** /*names*/,
+                                      int /*num_names*/) {
+}
+
 #ifdef LWPERF_HAVE_EIGER
 /* eiger backend */
 lwperf_eiger* lwperf_init_eiger(const char* machine, const char* application,
@@ -101,6 +105,11 @@ void lwperf_stop_eiger(lwperf_eiger* perf, const char* site_name) {
 
 void lwperf_init_papi_eiger(lwperf_eiger* perf) {
   perf->init_papi();
+}
+
+void lwperf_init_papi_with_names_eiger(lwperf_eiger* perf, const char** names,
+                                       int num_names) {
+  perf->init_papi(names, num_names);
 }
 #endif
 
@@ -137,6 +146,11 @@ void lwperf_init_papi_csv(lwperf_csv* perf) {
   perf->init_papi();
 }
 
+void lwperf_init_papi_with_names_csv(lwperf_csv* perf, const char** names,
+                                     int num_names) {
+  perf->init_papi(names, num_names);
+}
+
 #ifdef LWPERF_HAVE_SSTMAC
 /* sstmac backend */
 lwperf_sstmac* lwperf_init_sstmac(const char* machine, const char* application,
@@ -165,8 +179,9 @@ void lwperf_stop_sstmac(lwperf_sstmac* perf, const char* site_name) {
   perf->stop(site_name);
 }
 
-void lwperf_init_papi_sstmac(lwperf_sstmac* perf) {
-  perf->init_papi();
+void lwperf_init_papi_with_names_sstmac(lwperf_sstmac* perf, const char** names,
+                                        int num_names) {
+  perf->init_papi(names, num_names);
 }
 #endif
 

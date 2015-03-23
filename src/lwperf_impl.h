@@ -40,6 +40,7 @@ typedef struct LWPERF_IMPL* lwperf_t;
 #define lwperf_log_impl LWPERF_CAT(lwperf_log_, LWPERF_IMPL_BASE)
 #define lwperf_stop_impl LWPERF_CAT(lwperf_stop_, LWPERF_IMPL_BASE)
 #define lwperf_init_papi_impl LWPERF_CAT(lwperf_init_papi_, LWPERF_IMPL_BASE)
+#define lwperf_init_papi_with_names_impl LWPERF_CAT(lwperf_init_papi_with_names_, LWPERF_IMPL_BASE)
 
 /* Backend implementations */
 
@@ -54,6 +55,7 @@ void lwperf_add_site_param_null(lwperf_null* perf, const char* site_name,
 void lwperf_log_null(lwperf_null* perf, const char* site_name);
 void lwperf_stop_null(lwperf_null* perf, const char* site_name);
 void lwperf_init_papi_null(lwperf_null* perf);
+void lwperf_init_papi_with_names_null(lwperf_null* perf, const char** names, int num_names);
 
 /* eiger backend */
 typedef struct lwperf_eiger lwperf_eiger;
@@ -66,6 +68,7 @@ void lwperf_add_site_param_eiger(lwperf_eiger* perf, const char* site_name,
 void lwperf_log_eiger(lwperf_eiger* perf, const char* site_name);
 void lwperf_stop_eiger(lwperf_eiger* perf, const char* site_name);
 void lwperf_init_papi_eiger(lwperf_eiger* perf);
+void lwperf_init_papi_with_names_eiger(lwperf_eiger* perf, const char** names, int num_names);
 
 /* csv backend */
 typedef struct lwperf_csv lwperf_csv;
@@ -78,6 +81,7 @@ void lwperf_add_site_param_csv(lwperf_csv* perf, const char* site_name,
 void lwperf_log_csv(lwperf_csv* perf, const char* site_name);
 void lwperf_stop_csv(lwperf_csv* perf, const char* site_name);
 void lwperf_init_papi_csv(lwperf_csv* perf);
+void lwperf_init_papi_with_names_csv(lwperf_csv* perf, const char** names, int num_names);
 
 /* sstmac backend */
 typedef struct lwperf_sstmac lwperf_sstmac;
@@ -90,6 +94,7 @@ void lwperf_add_site_param_sstmac(lwperf_sstmac* perf, const char* site_name,
 void lwperf_log_sstmac(lwperf_sstmac* perf, const char* site_name);
 void lwperf_stop_sstmac(lwperf_sstmac* perf, const char* site_name);
 void lwperf_init_papi_sstmac(lwperf_sstmac* perf);
+void lwperf_init_papi_with_names_sstmac(lwperf_sstmac* perf, const char** names, int num_names);
 
 /* Helper macros */
 #define LWPERF_NARGS_SEQ(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, \

@@ -37,6 +37,12 @@ inline void lwperf_stop(lwperf_t perf, const char* site_name) {
 inline void lwperf_init_papi(lwperf_t perf) {
   lwperf_init_papi_impl(perf);
 }
+
+inline void lwperf_init_papi_with_names(lwperf_t perf,
+                                        const char** counter_names,
+                                        int num_counter_names) {
+  lwperf_init_papi_with_names_impl(perf, counter_names, num_counter_names);
+}
 /* 
  * This function can take a variable number of name--value pairs as arguments.
  * For example:
