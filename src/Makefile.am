@@ -10,3 +10,8 @@ endif
 
 #liblwperf_la_CXXFLAGS = -fvisibility=hidden
 liblwperf_la_LDFLAGS = $(SSTMAC_LIBS) -export-symbols-regex '^lwperf_'
+
+bin_PROGRAMS = lwperf-wrapper
+lwperf_wrapper_SOURCES = lwperf_wrapper.cpp
+#lwperf-wrapper_CPPFLAGS = -I$(srcdir)
+lwperf_wrapper_LDADD = liblwperf.la

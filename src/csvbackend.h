@@ -9,10 +9,10 @@ namespace lwperf {
 
 class CSVBackend{
   private:
-    std::unique_ptr<std::ofstream> output_file_;
+    const char* site_name_;
 
   public:
-    CSVBackend(const char* site_name);
+    CSVBackend(const char* site_name) : site_name_{site_name} {}
     static void register_configuration(const char* machine, const char* application,
                                        const char* dbname) {
       (void)machine;

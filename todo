@@ -1,3 +1,4 @@
+* some sort of reporting so if you call init_rapl but there's no rapl support, it allerts you
 * maybe a pkg-config thing: need to handle optional features (papi, eiger, sstmac) and their flags
     this gets complicated if those libs don't provide pc files
 * better way to notify that papi was not installed if someone tries to use it

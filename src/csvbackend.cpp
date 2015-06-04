@@ -23,7 +23,7 @@ void print_comma_separated(std::ofstream& out, const std::vector<T>& first,
                            const std::vector<T>& second,
                            const std::vector<T>& third){
   print_comma_separated(out, first);
-  if(!first.empty() && !second.empty()){
+  if(!first.empty() && (!second.empty() || !third.empty())){
     out << ",";
   }
   print_comma_separated(out, second);
@@ -34,25 +34,27 @@ void print_comma_separated(std::ofstream& out, const std::vector<T>& first,
   out << "\n";
 }
 
-CSVBackend::CSVBackend(const char* site_name) : output_file_{new std::ofstream} {
-  std::stringstream file_ss;
-  file_ss << site_name << ".csv";
-  output_file_->open(file_ss.str());
-}
-
-
 void CSVBackend::commit_headers(const std::vector<std::string>& invariant_names,
                                 const std::vector<std::string>& parameter_names,
                                 const std::vector<std::string>& result_names) {
-  print_comma_separated(*output_file_, invariant_names, parameter_names,
-                        result_names);
+  std::stringstream file_ss;
+  file_ss << site_name_ << ".csv";
+  std::ofstream ofile(file_ss.str(), std::ios::app);
+  // only write headers if output file is empty
+  if(ofile.tellp() == 0){
+    print_comma_separated(ofile, invariant_names, parameter_names,
+                          result_names);
+  }
 }
 
 void CSVBackend::commit_values(
     const std::vector<double>& invariant_values,
     const std::vector<double>& parameter_values,
     const std::vector<double>& result_values) {
-  print_comma_separated(*output_file_, invariant_values, parameter_values,
+  std::stringstream file_ss;
+  file_ss << site_name_ << ".csv";
+  std::ofstream ofile(file_ss.str(), std::ios::app);
+  print_comma_separated(ofile, invariant_values, parameter_values,
                         result_values);
 }
 
