@@ -2,7 +2,7 @@ AC_INIT([lwperf], [2.0], [eanger@gatech.edu])
 AC_CONFIG_AUX_DIR([config])
 AM_INIT_AUTOMAKE([foreign -Wall -Werror])
 AC_CONFIG_MACRO_DIR([acinclude])
-AM_PROG_AR
+m4_ifdef([AM_PROG_AR], [AM_PROG_AR]) dnl workaround for automake 1.11
 
 AC_PROG_CXX
 
@@ -30,14 +30,13 @@ AC_ARG_ENABLE([eiger],
               AS_HELP_STRING([--enable-eiger], [Enable Eiger backend]))
 
 AS_IF([test "x$enable_eiger" = "xyes"], [
+LIBS="$LIBS -leiger -lpthread"
 AC_LANG_PUSH([C++])
-SAVED_LDFLAGS=$LDFLAGS
 AC_LINK_IFELSE(
     [AC_LANG_PROGRAM([#include <eiger/eiger.h>],
                      [eiger::error_t dummy])],
-    [TEST_LIBS="$TEST_LIBS -leiger"] [HAVE_EIGER=1],
+    [HAVE_EIGER=1],
     [AC_MSG_ERROR([Eiger is not installed.])])
-LDFLAGS=$SAVED_LDFLAGS
 AC_CHECK_HEADERS([eiger/eiger.h]) # HAVE_EIGER_EIGER_H
 HAVE_EIGER_STRING="#define LWPERF_HAVE_EIGER"
 AC_LANG_POP([C++])

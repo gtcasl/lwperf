@@ -19,3 +19,4 @@ libtool
 *.o
 *.la
 lwperf-wrapper
+src/lwperf_config.h
